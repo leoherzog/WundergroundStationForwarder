@@ -25,7 +25,7 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 
 You can see it running in the Executions menu in **View** → **Executions**. If you ever make changes to the API keys or enabled services, just run the **Schedule** function again.
 
-Unfortunately, it looks like the new Wunderground API keys have started expiring 6 months after being generated, so you may need to replace the key in step 3 if that happens.
+Unfortunately, it looks like the new Wunderground API keys have started expiring 6 months after being generated, so you may need to replace the key on Line 7 if that happens.
 
 
 ## License
@@ -36,4 +36,4 @@ Feel free to take a look at the source and adapt as you please. This source is l
 
 Wunderground Station Forwarder is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
 
-<a href="https://www.buymeacoffee.com/leoherzog" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/leoherzog" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 38px !important;width: 160px !important;" ></a>
