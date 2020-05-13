@@ -57,13 +57,13 @@ function updateWindy_() {
   request += '?stationId=' + windyStationId;
   request += '&time=' + new Date(station.obsTimeUtc).toISOString();
   request += '&tempf=' + station.imperial.temp;
-  if (station.imperial.windSpeed) request += '&windspeedmph=' + station.imperial.windSpeed;
-  if (station.imperial.windGust) request += '&windgustmph=' + station.imperial.windGust;
-  if (station.winddir) request += '&winddir=' + station.winddir;
-  if (station.imperial.pressure) request += '&baromin=' + station.imperial.pressure;
-  if (station.imperial.dewpt) request += '&dewptf=' + station.imperial.dewpt;
-  if (station.humidity) request += '&humidity=' + station.humidity;
-  if (station.uv) request += '&uv=' + station.uv;
+  if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
+  if (station.imperial.windGust != null) request += '&windgustmph=' + station.imperial.windGust;
+  if (station.winddir != null) request += '&winddir=' + station.winddir;
+  if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
+  if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
+  if (station.humidity != null) request += '&humidity=' + station.humidity;
+  if (station.uv != null) request += '&uv=' + station.uv;
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -84,12 +84,12 @@ function updatePWSWeather_() {
   request += '&PASSWORD=' + pwsWeatherPassword;
   request += '&dateutc=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyy-MM-dd hh:mm:ss');
   request += '&tempf=' + station.imperial.temp;
-  if (station.imperial.windSpeed) request += '&windspeedmph=' + station.imperial.windSpeed;
-  if (station.winddir) request += '&winddir=' + station.winddir;
-  if (station.imperial.pressure) request += '&baromin=' + station.imperial.pressure;
-  if (station.imperial.dewpt) request += '&dewptf=' + station.imperial.dewpt;
-  if (station.humidity) request += '&humidity=' + station.humidity;
-  if (station.uv) request += '&uv=' + station.uv;
+  if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
+  if (station.winddir != null) request += '&winddir=' + station.winddir;
+  if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
+  if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
+  if (station.humidity != null) request += '&humidity=' + station.humidity;
+  if (station.uv != null) request += '&uv=' + station.uv;
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -109,12 +109,12 @@ function updateWeathercloud_() {
   request += '?wid=' + weathercloudID;
   request += '&key=' + weathercloudAPIKey;
   request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixed(0);
-  if (station.imperial.windSpeed) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixed(0);
-  if (station.winddir) request += '&wdir=' + station.winddir;
-  if (station.imperial.pressure) request += '&baromin=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixed(0);
-  if (station.humidity) request += '&hum=' + station.humidity;
-  if (station.imperial.precipRate) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixed(0);
-  if (station.uv) request += '&uvi=' + (station.uv * 10);
+  if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixed(0);
+  if (station.winddir != null) request += '&wdir=' + station.winddir;
+  if (station.imperial.pressure != null) request += '&baromin=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixed(0);
+  if (station.humidity != null) request += '&hum=' + station.humidity;
+  if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixed(0);
+  if (station.uv != null) request += '&uvi=' + (station.uv * 10);
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
