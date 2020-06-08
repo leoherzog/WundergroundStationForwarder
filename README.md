@@ -1,6 +1,6 @@
 # Wunderground Station Forwarder
 
-This code is built to be hosted on the free [Google Apps Script](https://developers.google.com/apps-script) platform. It takes in weather station data from [the new Wunderground API](https://www.wunderground.com/member/api-keys) and periodically sends it on to [Windy](https://windy.com/), [PWSWeather](https://pwsweather.com/), and/or [Weathercloud](https://weathercloud.com/).
+This code is built to be hosted on the free [Google Apps Script](https://developers.google.com/apps-script) platform. It takes in weather station data from [the new Wunderground API](https://www.wunderground.com/member/api-keys) and periodically sends it on to [Windy](https://windy.com/), [PWSWeather](https://pwsweather.com/), [Weathercloud](https://weathercloud.com/), and/or [OpenWeatherMap](https://openweathermap.org/).
 
 ## Setup
 
@@ -21,12 +21,15 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
       - Set Line 15 to `true`
       - Set Line 16 to [your Weathercloud ID](https://app.weathercloud.net/devices)
       - Set Line 17 to [your Weathercloud API Key](https://app.weathercloud.net/devices)
+    - If you would like to send data to OpenWeatherMap,
+      - Set Line 18 to `true`
+      - Set Line 19 to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station)
+      - Set Line 20 to [your OpenWeatherMap API Key](https://home.openweathermap.org/api_keys)
 4. Run the "Schedule" function with **Run** → **Run function** → **Schedule**. You're done!
 
-You can see it running in the Executions menu in **View** → **Executions**. If you ever make changes to the API keys or enabled services, just run the **Schedule** function again.
+You can see it running in the Executions menu by going to **View** → **Executions**. If you ever make changes to the API keys or enabled services, just run the **Schedule** function again.
 
 Unfortunately, it looks like the new Wunderground API keys have started expiring 6 months after being generated, so you may need to replace the key on Line 7 if that happens.
-
 
 ## License
 
