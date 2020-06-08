@@ -15,19 +15,22 @@ const pwsWeatherPassword = 'XXXXXXXXXXX';
 const updateWeathercloud = true;
 const weathercloudID = 'xxxxxxxxxxxxxxxx';
 const weathercloudAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const updateOpenWeatherMap = true;
+const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
+const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
 function Schedule() {
-  let triggers = ScriptApp.getProjectTriggers();
-  for (let trigger of triggers) {
+  let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
     ScriptApp.deleteTrigger(trigger);
-  }
+  });
   refreshConditions_();
   ScriptApp.newTrigger('refreshConditions_').timeBased().everyMinutes(1).create();
   if (updateWindy) ScriptApp.newTrigger('updateWindy_').timeBased().everyMinutes(5).create();
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
   if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(10).create();
+  if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
 }
 
 // https://www.wunderground.com/member/api-keys
@@ -40,7 +43,7 @@ function refreshConditions_() {
   }
   conditionsJSON = conditionsJSON['observations'][0];
   
-//  console.log(JSON.stringify(conditionsJSON));
+  console.log(JSON.stringify(conditionsJSON));
   
   CacheService.getScriptCache().put('weatherstation', JSON.stringify(conditionsJSON));
   
@@ -62,7 +65,7 @@ function updateWindy_() {
   if (station.winddir != null) request += '&winddir=' + station.winddir;
   if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
   if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
-  if (station.humidity != null) request += '&humidity=' + station.humidity;
+  if (station.humidity != null) request += '&humidity=' + station.humidity.toFixedNumber(0);
   if (station.uv != null) request += '&uv=' + station.uv;
   
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -108,15 +111,50 @@ function updateWeathercloud_() {
   let request = 'http://api.weathercloud.net/v01/set';
   request += '?wid=' + weathercloudID;
   request += '&key=' + weathercloudAPIKey;
-  request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixed(0);
-  if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixed(0);
+  request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixedNumber(0);
+  if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixedNumber(0);
   if (station.winddir != null) request += '&wdir=' + station.winddir;
-  if (station.imperial.pressure != null) request += '&baromin=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixed(0);
-  if (station.humidity != null) request += '&hum=' + station.humidity;
-  if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixed(0);
+  if (station.imperial.pressure != null) request += '&baromin=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixedNumber(0);
+  if (station.humidity != null) request += '&hum=' + station.humidity.toFixedNumber(0);
+  if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixedNumber(0);
   if (station.uv != null) request += '&uvi=' + (station.uv * 10);
   
   let response = UrlFetchApp.fetch(request).getContentText();
+  
+  console.log(response);
+  
+  return response;
+  
+}
+
+// https://openweathermap.org/stations
+function updateOpenWeatherMap_() {
+  
+  let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
+  
+  const stationsDetails = JSON.parse(UrlFetchApp.fetch('https://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey).getContentText());
+  const internalStationID = stationsDetails.find(station => station['external_id'] == openWeatherMapStationID)['id'];
+  
+  let measurements = {"station_id": internalStationID};
+  measurements['dt'] = (new Date(station.obsTimeUtc).getTime() / 1000).toFixedNumber(0);
+  measurements['temperature'] = new Number(station.imperial.temp).fToC().toFixedNumber(1);
+  if (station.imperial.windSpeed != null) measurements['wind_speed'] = new Number(station.imperial.windSpeed).mphToMPS().toFixedNumber(0);
+  if (station.imperial.windGust != null) measurements['wind_gust'] = new Number(station.imperial.windGust).mphToMPS().toFixedNumber(0);
+  if (station.winddir != null) measurements['wind_deg'] = station.winddir;
+  if (station.imperial.pressure != null) measurements['pressure'] = new Number(station.imperial.pressure).inhgTohPa().toFixedNumber(0);
+  if (station.imperial.dewpt != null) measurements['dew_point'] = new Number(station.imperial.dewpt).fToC().toFixedNumber(1);
+  if (station.humidity != null) measurements['humidity'] = station.humidity.toFixedNumber(0);
+  
+  measurements = [measurements];
+  
+  let options = {
+    "headers": {"Content-Type": "application/json"},
+    "contentType": "application/json",
+    "type": "post",
+    "payload": JSON.stringify(measurements)
+  }
+  
+  let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/measurements?APPID=' + openWeatherMapAPIKey, options).getContentText();
   
   console.log(response);
   
@@ -161,3 +199,4 @@ Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
 Number.prototype.mphToMPS = function() { return this * 0.44704; }
 Number.prototype.inhgTohPa = function() { return this * 33.863886666667; }
 Number.prototype.inTohmm = function() { return this * 25.4; }
+Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }
