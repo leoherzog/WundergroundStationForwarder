@@ -85,7 +85,7 @@ function updatePWSWeather_() {
   let request = 'http://www.pwsweather.com/pwsupdate/pwsupdate.php';
   request += '?ID=' + pwsWeatherStationID;
   request += '&PASSWORD=' + pwsWeatherPassword;
-  request += '&dateutc=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyy-MM-dd hh:mm:ss');
+  request += '&dateutc=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyy-MM-dd HH:mm:ss');
   request += '&tempf=' + station.imperial.temp;
   if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
   if (station.winddir != null) request += '&winddir=' + station.winddir;
