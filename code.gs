@@ -1,5 +1,5 @@
 /*
- * Wunderground Station Forwarder v1.0
+ * Wunderground Station Forwarder v1.1.2
  * Fill in the API Keys (and which other services you'd like to update) below, and run the "Schedule" function once. You're all set!
  * If you make any changes to the API Keys or enabled services, run "Schedule" again.
  */
@@ -198,5 +198,5 @@ function fetchJSON_(url, headers) {
 Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
 Number.prototype.mphToMPS = function() { return this * 0.44704; }
 Number.prototype.inhgTohPa = function() { return this * 33.863886666667; }
-Number.prototype.inTohmm = function() { return this * 25.4; }
+Number.prototype.inTomm = function() { return this * 25.4; }
 Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }
