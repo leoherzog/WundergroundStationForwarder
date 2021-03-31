@@ -21,6 +21,8 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
+let version = "v1.1.2"
+
 function Schedule() {
   let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
     ScriptApp.deleteTrigger(trigger);
@@ -31,6 +33,8 @@ function Schedule() {
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
   if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
+  console.log("Scheduled! Check Executions ☰▶ tab for status.");
+  checkGithubReleaseVersion_();
 }
 
 // https://www.wunderground.com/member/api-keys
@@ -162,6 +166,24 @@ function updateOpenWeatherMap_() {
   
 }
 
+function checkGithubReleaseVersion_() {
+  try {
+    let latestRelease = fetchJSON_('https://api.github.com/repos/leoherzog/WundergroundStationForwarder/releases/latest');
+  }
+  catch(e) {
+    console.warn('Problem attempting to check for newer Github version');
+    return;
+  }
+  let comparison = compareSemver_(version, latestRelease.name);
+  if (comparison === 0) {
+    // console.info("Script is up-to-date");
+  } else if (comparison === -1) {
+    console.warn('New version of this script is available! Download at https://github.com/leoherzog/WundergroundStationForwarder/releases');
+  } else if (comparison === 1) {
+    console.error('Local script version (' + version + ') is newer than current release on Github?')
+  }
+}
+
 function fetchJSON_(url, headers) {
   
   if (!headers) {
@@ -194,6 +216,21 @@ function fetchJSON_(url, headers) {
   return json;
   
 }
+
+// https://github.com/substack/semver-compare
+function compareSemver_(a, b) {
+  var pa = a.split('.');
+  var pb = b.split('.');
+  for (var i = 0; i < 3; i++) {
+    var na = Number(pa[i]);
+    var nb = Number(pb[i]);
+    if (na > nb) return 1;
+    if (nb > na) return -1;
+    if (!isNaN(na) && isNaN(nb)) return 1;
+    if (isNaN(na) && !isNaN(nb)) return -1;
+  }
+  return 0;
+};
 
 Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
 Number.prototype.mphToMPS = function() { return this * 0.44704; }
