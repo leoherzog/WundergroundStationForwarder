@@ -1,7 +1,7 @@
 /*
- * Wunderground Station Forwarder v1.1.2
+ * Wunderground Station Forwarder v1.1.3
  * Fill in the API Keys (and which other services you'd like to update) below, and run the "Schedule" function once. You're all set!
- * If you make any changes to the API Keys or enabled services, run "Schedule" again.
+ * You can see updates in the "☰ ▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run "Schedule" again.
  */
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -21,7 +21,7 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
-let version = "v1.1.2"
+let version = "v1.1.3"
 
 function Schedule() {
   let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
@@ -81,22 +81,25 @@ function updateWindy_() {
 }
 
 // no official api docs 🙄
-// https://gitlab.com/acuparse/acuparse/-/blob/dev/cron/cron.php#L130
+// https://gitlab.com/acuparse/acuparse/-/blob/dev/src/fcn/cron/uploaders/pwsweather.php
+// https://github.com/OurColonial/WeatherLink-to-PWSweather
 function updatePWSWeather_() {
   
   let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
   
-  let request = 'http://www.pwsweather.com/pwsupdate/pwsupdate.php';
+  let request = 'https://pwsupdate.pwsweather.com/api/v1/submitwx';
   request += '?ID=' + pwsWeatherStationID;
   request += '&PASSWORD=' + pwsWeatherPassword;
   request += '&dateutc=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyy-MM-dd HH:mm:ss');
   request += '&tempf=' + station.imperial.temp;
   if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
+  if (station.imperial.windGust != null) request += '&windgustmph=' + station.imperial.windGust;
   if (station.winddir != null) request += '&winddir=' + station.winddir;
   if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
   if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
   if (station.humidity != null) request += '&humidity=' + station.humidity;
   if (station.uv != null) request += '&uv=' + station.uv;
+  request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw';
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
