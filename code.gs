@@ -170,8 +170,9 @@ function updateOpenWeatherMap_() {
 }
 
 function checkGithubReleaseVersion_() {
+  let latestRelease;
   try {
-    let latestRelease = fetchJSON_('https://api.github.com/repos/leoherzog/WundergroundStationForwarder/releases/latest');
+    latestRelease = fetchJSON_('https://api.github.com/repos/leoherzog/WundergroundStationForwarder/releases/latest');
   }
   catch(e) {
     console.warn('Problem attempting to check for newer Github version');
