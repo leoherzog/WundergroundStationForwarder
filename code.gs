@@ -110,7 +110,7 @@ function updatePWSWeather_() {
 }
 
 // official api docs are private 🙄
-// https://gitlab.com/acuparse/acuparse/-/blob/dev/cron/cron.php#L212
+// https://gitlab.com/acuparse/acuparse/-/blob/dev/src/fcn/cron/uploaders/weathercloud.php
 function updateWeathercloud_() {
   
   let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
