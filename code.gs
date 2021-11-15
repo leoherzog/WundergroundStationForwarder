@@ -1,5 +1,5 @@
 /*
- * Wunderground Station Forwarder v1.1.4
+ * Wunderground Station Forwarder v1.1.5
  * Fill in the API Keys (and which other services you'd like to update) below, and run the "Schedule" function once. You're all set!
  * You can see updates in the "☰ ▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run "Schedule" again.
  */
@@ -21,7 +21,7 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
-let version = "v1.1.4"
+let version = "v1.1.5"
 
 function Schedule() {
   let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
@@ -98,7 +98,10 @@ function updatePWSWeather_() {
   if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
   if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
   if (station.humidity != null) request += '&humidity=' + station.humidity;
-  if (station.uv != null) request += '&uv=' + station.uv;
+  if (station.solarRadiation != null) request += '&solarradiation=' + station.solarRadiation;
+  if (station.uv != null) request += '&UV=' + station.uv;
+  if (station.imperial.precipRate != null) request += '&rainin=' + station.imperial.precipRate;
+  if (station.imperial.precipTotal != null) request += '&dailyrainin=' + station.imperial.precipTotal;
   request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw';
   
   let response = UrlFetchApp.fetch(request).getContentText();
