@@ -21,7 +21,7 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
-let version = "v1.1.5"
+let version = 'v1.1.5';
 
 function Schedule() {
   let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
@@ -33,7 +33,7 @@ function Schedule() {
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
   if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
-  console.log("Scheduled! Check Executions ☰▶ tab for status.");
+  console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
 }
 
@@ -183,7 +183,7 @@ function checkGithubReleaseVersion_() {
   }
   let comparison = compareSemver_(version, latestRelease.name);
   if (comparison === 0) {
-    // console.info("Script is up-to-date");
+    // console.info('Script is up-to-date');
   } else if (comparison === -1) {
     console.warn('New version of this script is available! Download at https://github.com/leoherzog/WundergroundStationForwarder/releases');
   } else if (comparison === 1) {
@@ -215,7 +215,7 @@ function fetchJSON_(url, headers) {
         json = JSON.parse(json);
       }
       catch(e) { // still no luck? give up
-        throw "Problem fetching " + url;
+        throw 'Problem fetching ' + url;
       }
     }
   }
