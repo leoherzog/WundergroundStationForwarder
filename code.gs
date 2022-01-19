@@ -24,9 +24,7 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 let version = 'v1.1.5';
 
 function Schedule() {
-  let triggers = ScriptApp.getProjectTriggers().forEach(function(trigger) {
-    ScriptApp.deleteTrigger(trigger);
-  });
+  ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
   refreshConditions_();
   ScriptApp.newTrigger('refreshConditions_').timeBased().everyMinutes(1).create();
   if (updateWindy) ScriptApp.newTrigger('updateWindy_').timeBased().everyMinutes(5).create();
