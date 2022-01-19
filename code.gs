@@ -179,13 +179,16 @@ function checkGithubReleaseVersion_() {
     console.warn('Problem attempting to check for newer Github version');
     return;
   }
-  let comparison = compareSemver_(version, latestRelease.name);
-  if (comparison === 0) {
-    // console.info('Script is up-to-date');
-  } else if (comparison === -1) {
-    console.warn('New version of this script is available! Download at https://github.com/leoherzog/WundergroundStationForwarder/releases');
-  } else if (comparison === 1) {
-    console.error('Local script version (' + version + ') is newer than current release on Github?')
+  switch (compareSemver_(version, latestRelease.name)) {
+    case 0:
+      // console.info('Script is up-to-date');
+      break;
+    case -1:
+      console.warn('New version of this script is available! Download at https://github.com/leoherzog/WundergroundStationForwarder/releases');
+      break;
+    case 1:
+      console.error('Local script version (' + version + ') is newer than current release on Github?');
+      break;
   }
 }
 
