@@ -122,7 +122,7 @@ function updateWeathercloud_() {
   request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixedNumber(0);
   if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixedNumber(0);
   if (station.winddir != null) request += '&wdir=' + station.winddir;
-  if (station.imperial.pressure != null) request += '&baromin=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixedNumber(0);
+  if (station.imperial.pressure != null) request += '&bar=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixedNumber(0);
   if (station.humidity != null) request += '&hum=' + station.humidity.toFixedNumber(0);
   if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixedNumber(0);
   if (station.uv != null) request += '&uvi=' + (station.uv * 10);
