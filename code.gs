@@ -15,6 +15,7 @@ const pwsWeatherPassword = 'XXXXXXXXXXX';
 const updateWeathercloud = true;
 const weathercloudID = 'xxxxxxxxxxxxxxxx';
 const weathercloudAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const hasWeatherCloudPro = false;
 const updateOpenWeatherMap = true;
 const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
 const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -29,7 +30,7 @@ function Schedule() {
   ScriptApp.newTrigger('refreshConditions_').timeBased().everyMinutes(1).create();
   if (updateWindy) ScriptApp.newTrigger('updateWindy_').timeBased().everyMinutes(5).create();
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
-  if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(10).create();
+  if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();

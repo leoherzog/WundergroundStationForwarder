@@ -21,10 +21,11 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
       - Set Line 15 to `true`
       - Set Line 16 to [your Weathercloud ID](https://app.weathercloud.net/devices)
       - Set Line 17 to [your Weathercloud API Key](https://app.weathercloud.net/devices)
+      - Set Line 18 to whether or not you pay for Weathercloud Pro or Premium
     - If you would like to send data to OpenWeatherMap,
-      - Set Line 18 to `true`
-      - Set Line 19 to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station)
-      - Set Line 20 to [your OpenWeatherMap API Key](https://home.openweathermap.org/api_keys)
+      - Set Line 19 to `true`
+      - Set Line 20 to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station)
+      - Set Line 21 to [your OpenWeatherMap API Key](https://home.openweathermap.org/api_keys)
 4. Run the "Schedule" function with **Run** → **Run function** → **Schedule**. You're done!
 
 You can see it running in the Executions menu by going to **View** → **Executions**. If you ever make changes to the API keys or enabled services, just run the **Schedule** function again.
