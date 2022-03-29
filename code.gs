@@ -1,5 +1,5 @@
 /*
- * Wunderground Station Forwarder v1.1.6
+ * Wunderground Station Forwarder v1.1.7
  * Fill in the API Keys (and which other services you'd like to update) below, and run the "Schedule" function once. You're all set!
  * You can see updates in the "☰ ▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run "Schedule" again.
  */
@@ -22,7 +22,7 @@ const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Do not edit below
 
-let version = 'v1.1.6';
+let version = 'v1.1.7';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
