@@ -179,7 +179,7 @@ function checkGithubReleaseVersion_() {
     console.warn('Problem attempting to check for newer Github version');
     return;
   }
-  switch (compareSemver_(version, latestRelease.name)) {
+  switch (compareSemver_(version, latestRelease.tag_name)) {
     case 0:
       // console.info('Script is up-to-date');
       break;
