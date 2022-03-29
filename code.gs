@@ -119,6 +119,8 @@ function updateWeathercloud_() {
   let request = 'http://api.weathercloud.net/v01/set';
   request += '?wid=' + weathercloudID;
   request += '&key=' + weathercloudAPIKey;
+  request += '&date=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyyMMdd');
+  request += '&time=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'HHmm');
   request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixedNumber(0);
   if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixedNumber(0);
   if (station.winddir != null) request += '&wdir=' + station.winddir;
@@ -126,8 +128,11 @@ function updateWeathercloud_() {
   if (station.humidity != null) request += '&hum=' + station.humidity.toFixedNumber(0);
   if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixedNumber(0);
   if (station.uv != null) request += '&uvi=' + (station.uv * 10);
+  request += '&software=appsscriptwundergroundforwarder';
   
   let response = UrlFetchApp.fetch(request).getContentText();
+
+  if (response != 200) throw response;
   
   console.log(response);
   
