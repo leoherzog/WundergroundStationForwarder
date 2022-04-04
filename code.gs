@@ -35,7 +35,7 @@ const windyAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 const windyStationId = '0';
 ///
 const updatePWSWeather = false;
-const pwsWeatherPassword = 'XXXXXXXXXXX';
+const pwsWeatherAPIKey = 'XXXXXXXXXXX';
 const pwsWeatherStationID = 'XXXXXXXXXXX';
 ///
 const updateWeathercloud = false;
@@ -436,7 +436,7 @@ function updatePWSWeather_() {
   
   let request = 'https://pwsupdate.pwsweather.com/api/v1/submitwx';
   request += '?ID=' + pwsWeatherStationID;
-  request += '&PASSWORD=' + pwsWeatherPassword;
+  request += '&PASSWORD=' + pwsWeatherAPIKey;
   request += '&dateutc=' + Utilities.formatDate(new Date(conditions.time), 'UTC', "yyyy-MM-dd'+'HH:mm:ss");
   if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
   if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;

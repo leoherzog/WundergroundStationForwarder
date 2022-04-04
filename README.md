@@ -79,7 +79,7 @@ and periodically sends it on to
 
       - Set `updateWindy` to `true` on Line 33
       - Set your `windyAPIKey` on Line 34
-      - Set your `windyStationId` on line 35. It's likely `0`, `1`, `2`, etc
+      - Set your `windyStationId` on line 35. It's likely `0`, `1`, `2`, etc.
     </details>
     <details>
       <summary>PWSWeather</summary>
@@ -87,7 +87,7 @@ and periodically sends it on to
       Sends to [PWSWeather](https://dashboard.pwsweather.com/).
 
       - Set `updatePWSWeather` to `true` on Line 37
-      - Set your `pwsWeatherPassword` on line 38
+      - Set your `pwsWeatherAPIKey` from your station's admin page on line 38
       - Set your `pwsWeatherStationID` on Line 39
     </details>
     <details>
