@@ -7,7 +7,7 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 - [Davis WeatherLink](https://weatherlink.com/), or
 - [WeatherFlow Tempest](https://tempestwx.com/)
 
-and periodically sends it on to one or more of
+and periodically sends it on to
 
 - [Wunderground](https://wunderground.com/pws/overview),
 - [Windy](https://stations.windy.com/),
