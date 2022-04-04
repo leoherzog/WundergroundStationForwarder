@@ -1,75 +1,423 @@
 /*
- * Wunderground Station Forwarder v1.1.7
- * Fill in the API Keys (and which other services you'd like to update) below, and run the "Schedule" function once. You're all set!
- * You can see updates in the "☰ ▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run "Schedule" again.
+ * Wunderground Station Forwarder
+ * Fill in the API Keys (and which other services you'd like to update) below, and "▷ Run" the Schedule function. You're all set!
+ * You can see updates in the "☰▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run Schedule again.
  */
+
+
+// Getting data
+
+const datasource = 'ibm'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), or 'weatherflow' (tempestwx)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationId = 'KXXXXXXXXXX';
-const updateWindy = true;
+// or
+const acuriteUsername = 'xxxxxx@example.com';
+const acuritePassword = 'xxxxxxxxxxxxxxxxxx';
+const acuriteHubName = 'xxxxxxxxxxxxxxxx';
+const acuriteStationName = 'xxxxxxxxxxxxxxxx';
+// or
+const davisApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const davisApiSecret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const davisStationName = 'xxxxxxxxxxxxxxxx';
+// or
+const weatherflowPUT = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+const weatherflowStationId = 'xxxxx';
+
+// Sending data
+
+const updateWunderground = false;
+const wundergroundStationId = 'KXXXXXXXXXX';
+const wundergroundStationKey = 'xxxxxxxx';
+///
+const updateWindy = false;
 const windyAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const windyStationId = '0';
-const updatePWSWeather = true;
-const pwsWeatherStationID = 'XXXXXXXXXXX';
+///
+const updatePWSWeather = false;
 const pwsWeatherPassword = 'XXXXXXXXXXX';
-const updateWeathercloud = true;
-const weathercloudID = 'xxxxxxxxxxxxxxxx';
+const pwsWeatherStationID = 'XXXXXXXXXXX';
+///
+const updateWeathercloud = false;
 const weathercloudAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const weathercloudID = 'xxxxxxxxxxxxxxxx';
 const hasWeatherCloudPro = false;
-const updateOpenWeatherMap = true;
-const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
+///
+const updateOpenWeatherMap = false;
 const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
 
-// Do not edit below
 
-let version = 'v1.1.7';
+/*
+  ____          _   _       _     _____    _ _ _     ____       _               
+ |  _ \  ___   | \ | | ___ | |_  | ____|__| (_) |_  | __ )  ___| | _____      __
+ | | | |/ _ \  |  \| |/ _ \| __| |  _| / _` | | __| |  _ \ / _ \ |/ _ \ \ /\ / /
+ | |_| | (_) | | |\  | (_) | |_  | |__| (_| | | |_  | |_) |  __/ | (_) \ V  V / 
+ |____/ \___/  |_| \_|\___/ \__| |_____\__,_|_|\__| |____/ \___|_|\___/ \_/\_/  
+
+*/
+
+let version = 'v2.0.0-beta1';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
-  refreshConditions_();
-  ScriptApp.newTrigger('refreshConditions_').timeBased().everyMinutes(1).create();
+  switch (datasource) {
+    case 'ibm':
+      refreshFromIBM_();
+      ScriptApp.newTrigger('refreshFromIBM_').timeBased().everyMinutes(1).create();
+      break;
+    case 'acurite':
+      refreshFromAcurite_();
+      ScriptApp.newTrigger('refreshFromAcurite_').timeBased().everyMinutes(1).create();
+      break;
+    case 'davis':
+      refreshFromDavis_();
+      ScriptApp.newTrigger('refreshFromDavis_').timeBased().everyMinutes(1).create();
+      break;
+    case 'weatherflow':
+      refreshFromWeatherflow_();
+      ScriptApp.newTrigger('refreshFromWeatherflow_').timeBased().everyMinutes(1).create();
+      break;
+  }
+  if (updateWunderground) ScriptApp.newTrigger('updateWunderground_').timeBased().everyMinutes(1).create();
   if (updateWindy) ScriptApp.newTrigger('updateWindy_').timeBased().everyMinutes(5).create();
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
-  if (updateWeathercloud) ScriptApp.newTrigger('updateWeathercloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
+  if (updateWeatherCloud) ScriptApp.newTrigger('updateWeatherCloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
 }
 
+/*
+  ____               _                    
+ |  _ \ ___  ___ ___(_)_   _____ _ __ ___ 
+ | |_) / _ \/ __/ _ \ \ \ / / _ \ '__/ __|
+ |  _ <  __/ (_|  __/ |\ V /  __/ |  \__ \
+ |_| \_\___|\___\___|_| \_/ \___|_|  |___/
+
+*/
+
 // https://www.wunderground.com/member/api-keys
-function refreshConditions_() {
-  
-  // I know, I know. Fahrenheit? Miles per Hour? It's not my favorite either. But, the units are smaller, so it's more precise.
-  let conditionsJSON = fetchJSON_('https://api.weather.com/v2/pws/observations/current?stationId=' + ibmStationId + '&format=json&units=e&numericPrecision=decimal&apiKey=' + ibmAPIKey);
-  if (!conditionsJSON) { // still no luck? give up
-    return false;
+function refreshFromIBM_() {
+
+  let ibmConditions = fetchJSON_('https://api.weather.com/v2/pws/observations/current?stationId=' + ibmStationId + '&format=json&units=e&numericPrecision=decimal&apiKey=' + ibmAPIKey);
+  if (!ibmConditions) return false; // still no luck? give up
+
+  ibmConditions = ibmConditions['observations'][0];
+
+  let conditions = {};
+  conditions.time = new Date(ibmConditions.obsTimeUtc).getTime();
+  if (ibmConditions.imperial.temp != null) conditions.temp = {
+    "f": ibmConditions.imperial.temp,
+    "c": new Number(ibmConditions.imperial.temp).fToC().toFixedNumber(1)
   }
-  conditionsJSON = conditionsJSON['observations'][0];
+  if (ibmConditions.imperial.dewpt != null) conditions.dewpoint = {
+    "f": ibmConditions.imperial.dewpt,
+    "c": new Number(ibmConditions.imperial.dewpt).fToC().toFixedNumber(1)
+  }
+  if (ibmConditions.imperial.windSpeed != null) conditions.windSpeed = {
+    "mph": ibmConditions.imperial.windSpeed,
+    "mps": new Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0)
+  }
+  if (ibmConditions.imperial.windGust != null) conditions.windGust = {
+    "mph": ibmConditions.imperial.windGust,
+    "mps": new Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0)
+  }
+  if (ibmConditions.winddir != null) conditions.winddir = ibmConditions.winddir;
+  if (ibmConditions.imperial.pressure != null) conditions.pressure = {
+    "inHg": ibmConditions.imperial.pressure,
+    "hPa": new Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(1)
+  }
+  if (ibmConditions.humidity != null) conditions.humidity = ibmConditions.humidity.toFixedNumber(0);
+  if (ibmConditions.uv != null) conditions.uv = ibmConditions.uv;
+  if (ibmConditions.solarRadiation != null) conditions.solarRadiation = ibmConditions.solarRadiation;
+  if (ibmConditions.imperial.precipRate != null) conditions.precipRate = {
+    "in": ibmConditions.imperial.precipRate,
+    "mm": new Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(2)
+  }
+  if (ibmConditions.imperial.precipTotal != null) conditions.precipTotal = {
+    "in": ibmConditions.imperial.precipTotal,
+    "mm": new Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
+  }
   
-  console.log(JSON.stringify(conditionsJSON));
+  console.log(JSON.stringify(conditions));
   
-  CacheService.getScriptCache().put('weatherstation', JSON.stringify(conditionsJSON));
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
   
-  return JSON.stringify(conditionsJSON);
+  return JSON.stringify(conditions);
+
+}
+
+// https://community.smartthings.com/t/my-very-quick-and-dirty-integration-with-myacurite-smart-hub-st-webcore/97749
+function refreshFromAcurite_() {
+
+  let accountId = CacheService.getScriptCache().get('myAcuriteAccountId');
+  let token = CacheService.getScriptCache().get('myAcuriteToken');
   
+  // pretending-ish to be a browser
+  let headers = {
+    "Content-Type": "application/json;charset=UTF-8",
+    "Origin": "https://www.myacurite.com/",
+    "Accept-Language": "en-us",
+    "Accept": "application/json",
+    "Referer": "https://www.myacurite.com/",
+    "DNT": "1"
+  }
+
+  if (!token) { // get a new one every 6 hours when the cache expires
+
+    const credentials = {
+      "remember": true,
+      "email": acuriteUsername,
+      "password": acuritePassword
+    }
+
+    let token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
+      "headers": headers,
+      "method": "post",
+      "payload": JSON.stringify(credentials)
+    }).getContentText();
+    token = JSON.parse(token);
+
+    accountId = token['user']['account_users'][0]['account_id'].toString();
+    token = token['token_id'];
+
+    CacheService.getScriptCache().put('myAcuriteAccountId', accountId, 21600);
+    CacheService.getScriptCache().put('myAcuriteToken', token, 21600);
+
+  }
+
+  headers['x-one-vue-token'] = token;
+
+  let hubs = UrlFetchApp.fetch('https://marapi.myacurite.com/accounts/' + accountId + '/dashboard/hubs/', {"headers": headers}).getContentText();
+  hubs = JSON.parse(hubs);
+
+  // console.log(JSON.stringify(hubs));
+
+  let hubId = hubs.account_hubs.find(hub => hub.name === acuriteHubName).id.toString();
+
+  let sensors = UrlFetchApp.fetch('https://marapi.myacurite.com/accounts/' + accountId + '/dashboard/hubs/' + hubId, {"headers": headers}).getContentText();
+  sensors = JSON.parse(sensors);
+
+  // console.log(JSON.stringify(sensors));
+
+  let acuriteConditions = sensors.devices.find(device => device.name === acuriteStationName);
+
+  // console.log(JSON.stringify(acuriteConditions));
+
+  let conditions = {};
+  conditions.time = new Date(acuriteConditions.last_check_in_at).getTime();
+  let temp = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Temperature');
+  if (temp != null) conditions.temp = {
+    "f": temp.chart_unit === 'F' ? temp.last_reading_value : new Number(temp.last_reading_value).cToF().toFixedNumber(1),
+    "c": temp.chart_unit === 'C' ? temp.last_reading_value : new Number(temp.last_reading_value).fToC().toFixedNumber(1)
+  }
+  let dewpoint = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Dew Point');
+  if (dewpoint != null) conditions.dewpoint = {
+    "f": dewpoint.chart_unit === 'F' ? dewpoint.last_reading_value : new Number(dewpoint.last_reading_value).cToF().toFixedNumber(1),
+    "c": dewpoint.chart_unit === 'C' ? dewpoint.last_reading_value : new Number(dewpoint.last_reading_value).fToC().toFixedNumber(1)
+  }
+  let windspeed = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'WindSpeedAvg');
+  if (windspeed != null) conditions.windSpeed = {
+    "mph": windspeed.chart_unit === 'mph' ? windspeed.last_reading_value : new Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
+    "mps": windspeed.chart_unit === 'km/s' ? new Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0)
+  }
+  let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
+  if (windgust != null) conditions.windGust = {
+    "mph": windgust.chart_unit === 'mph' ? windgust.last_reading_value : new Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
+    "mps": windgust.chart_unit === 'km/s' ? new Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windgust.last_reading_value).mphToMPS().toFixedNumber(0)
+  }
+  let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
+  if (winddir != null) conditions.winddir = winddir.last_reading_value;
+  let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
+  if (pressure != null) conditions.pressure = {
+    "inHg": pressure.chart_unit === 'inHg' ? pressure.last_reading_value : new Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
+    "hPa": pressure.chart_unit === 'hPa' ? pressure.last_reading_value : new Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
+  }
+  let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'humidity');
+  if (humidity != null) conditions.humidity = humidity.last_reading_value;
+  let uv = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'UV'); // TODO: Unable to test, may be wrong sensor code
+  if (uv != null) conditions.uv = uv.last_reading_value;
+  let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Light Intensity'); // TODO: Unable to test, may be wrong sensor code
+  if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
+  let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
+  if (rain != null) conditions.precipRate = {
+    "in": rain.chart_unit === 'in' ? rain.last_reading_value : new Number(rain.last_reading_value).mmToIn().toFixedNumber(0),
+    "mm": rain.chart_unit === 'mm' ? rain.last_reading_value : new Number(rain.last_reading_value).inTomm().toFixedNumber(0)
+  }
+
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+// https://weatherlink.github.io/v2-api/api-reference
+function refreshFromDavis_() {
+  
+  let now = Math.round(new Date().getTime() / 1000);
+
+  let signature = Utilities.computeHmacSha256Signature('api-key' + davisApiKey + 't' + now, davisApiSecret).map(function(chr){return (chr+256).toString(16).slice(-2)}).join(''); // sha256 to hex
+
+  let davisStationInfo = fetchJSON_('https://api.weatherlink.com/v2/stations/?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
+  if (!davisStationInfo) return false; // still no luck? give up
+
+  let stationId = davisStationInfo.stations.find(station => station.station_name === davisStationName).station_id;
+  
+  signature = Utilities.computeHmacSha256Signature('api-key' + davisApiKey + 'station-id' + stationId + 't' + now, davisApiSecret).map(function(chr){return (chr+256).toString(16).slice(-2)}).join('');
+
+  let davisConditions = fetchJSON_('https://api.weatherlink.com/v2/current/' + stationId + '?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
+  if (!davisConditions) return false; // still no luck? give up
+
+  let conditions = {};
+  conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
+  if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
+    "f": davisConditions.sensors[0].data[0].temp_out,
+    "c": new Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
+  }
+  if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
+    "f": davisConditions.sensors[0].data[0].dew_point,
+    "c": new Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(1)
+  }
+  if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
+    "mph": davisConditions.sensors[0].data[0].wind_speed,
+    "mps": new Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0)
+  }
+  if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
+    "mph": davisConditions.sensors[0].data[0].wind_gust_10_min,
+    "mps": new Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0)
+  }
+  if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
+  if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
+    "inHg": davisConditions.sensors[0].data[0].bar,
+    "hPa": new Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(1)
+  }
+  if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = davisConditions.sensors[0].data[0].hum_out.toFixedNumber(0);
+  if (davisConditions.sensors[0].data[0].uv != null) conditions.uv = davisConditions.sensors[0].data[0].uv;
+  if (davisConditions.sensors[0].data[0].solar_rad != null) conditions.solarRadiation = davisConditions.sensors[0].data[0].solar_rad;
+  if (davisConditions.sensors[0].data[0].rain_storm_in != null) conditions.precipRate = {
+    "in": davisConditions.sensors[0].data[0].rain_storm_in,
+    "mm": davisConditions.sensors[0].data[0].rain_storm_mm
+  }
+  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipTotal = {
+    "in": davisConditions.sensors[0].data[0].rain_day_in,
+    "mm": davisConditions.sensors[0].data[0].rain_day_mm
+  }
+  
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+// https://weatherflow.github.io/Tempest/api/
+function refreshFromWeatherflow_() {
+
+  let weatherflowConditions = fetchJSON_('https://swd.weatherflow.com/swd/rest/observations/station/' + weatherflowStationId + '?token=' + weatherflowPUT);
+  if (!weatherflowConditions) return false; // still no luck? give up
+
+  let conditions = {};
+  conditions.time = weatherflowConditions.obs[0].timestamp * 1000;
+  if (weatherflowConditions.obs[0].air_temperature != null) conditions.temp = {
+    "f": new Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
+    "c": weatherflowConditions.obs[0].air_temperature
+  }
+  if (weatherflowConditions.obs[0].dew_point != null) conditions.dewpoint = {
+    "f": new Number(weatherflowConditions.obs[0].dew_point).cToF().toFixedNumber(1),
+    "c": weatherflowConditions.obs[0].dew_point
+  }
+  if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
+    "mph": weatherflowConditions.obs[0].wind_avg,
+    "mps": new Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0)
+  }
+  if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
+    "mph": weatherflowConditions.obs[0].wind_gust,
+    "mps": new Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0)
+  }
+  if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
+  if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
+    "inHg": new Number(weatherflowConditions.obs[0].station_pressure).hPaToinHg().toFixedNumber(1),
+    "hPa": weatherflowConditions.obs[0].station_pressure
+  }
+  if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = weatherflowConditions.obs[0].relative_humidity;
+  if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
+  if (weatherflowConditions.obs[0].solar_radiation != null) conditions.solarRadiation = weatherflowConditions.obs[0].solar_radiation;
+  if (weatherflowConditions.obs[0].precip != null) conditions.precipRate = {
+    "in": new Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
+    "mm": weatherflowConditions.obs[0].precip
+  }
+  if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipTotal = {
+    "in": new Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
+    "mm": weatherflowConditions.obs[0].precip_accum_local_day
+  }
+  
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+/*
+  ____                 _               
+ / ___|  ___ _ __   __| | ___ _ __ ___ 
+ \___ \ / _ \ '_ \ / _` |/ _ \ '__/ __|
+  ___) |  __/ | | | (_| |  __/ |  \__ \
+ |____/ \___|_| |_|\__,_|\___|_|  |___/
+
+*/
+
+// https://support.weather.com/s/article/PWS-Upload-Protocol
+function updateWunderground_() {
+
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+  
+  let request = 'https://rtupdate.wunderground.com/weatherstation/updateweatherstation.php';
+  request += '?ID=' + wundergroundStationId;
+  request += '&PASSWORD=' + wundergroundStationKey;
+  request += '&dateutc=' + encodeURIComponent(Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyy-MM-dd HH:mm:ss'));
+  if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
+  if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;
+  if (conditions.windSpeed != null) request += '&windspeedmph=' + conditions.windSpeed.mph;
+  if (conditions.windGust != null) request += '&windgustmph=' + conditions.windGust.mph;
+  if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
+  if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
+  if (conditions.uv != null) request += '&uv=' + conditions.uv;
+  if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
+  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
+  request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw&realtime=1&rtfreq=60';
+
+  let response = UrlFetchApp.fetch(request).getContentText();
+  
+  console.log(response);
+  
+  return response;
+
 }
 
 // https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy
 function updateWindy_() {
   
-  let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   let request = 'https://stations.windy.com/pws/update/' + windyAPIKey;
   request += '?stationId=' + windyStationId;
-  request += '&time=' + new Date(station.obsTimeUtc).toISOString();
-  request += '&tempf=' + station.imperial.temp;
-  if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
-  if (station.imperial.windGust != null) request += '&windgustmph=' + station.imperial.windGust;
-  if (station.winddir != null) request += '&winddir=' + station.winddir;
-  if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
-  if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
-  if (station.humidity != null) request += '&humidity=' + station.humidity.toFixedNumber(0);
-  if (station.uv != null) request += '&uv=' + station.uv;
+  request += '&time=' + new Date(conditions.time).toISOString();
+  if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
+  if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;
+  if (conditions.windSpeed != null) request += '&windspeedmph=' + conditions.windSpeed.mph;
+  if (conditions.windGust != null) request += '&windgustmph=' + conditions.windGust.mph;
+  if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
+  if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
+  if (conditions.uv != null) request += '&uv=' + conditions.uv;
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -83,24 +431,24 @@ function updateWindy_() {
 // https://gitlab.com/acuparse/acuparse/-/blob/dev/src/fcn/cron/uploaders/pwsweather.php
 // https://github.com/OurColonial/WeatherLink-to-PWSweather
 function updatePWSWeather_() {
-  
-  let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
+
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   let request = 'https://pwsupdate.pwsweather.com/api/v1/submitwx';
   request += '?ID=' + pwsWeatherStationID;
   request += '&PASSWORD=' + pwsWeatherPassword;
-  request += '&dateutc=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyy-MM-dd HH:mm:ss');
-  request += '&tempf=' + station.imperial.temp;
-  if (station.imperial.windSpeed != null) request += '&windspeedmph=' + station.imperial.windSpeed;
-  if (station.imperial.windGust != null) request += '&windgustmph=' + station.imperial.windGust;
-  if (station.winddir != null) request += '&winddir=' + station.winddir;
-  if (station.imperial.pressure != null) request += '&baromin=' + station.imperial.pressure;
-  if (station.imperial.dewpt != null) request += '&dewptf=' + station.imperial.dewpt;
-  if (station.humidity != null) request += '&humidity=' + station.humidity;
-  if (station.solarRadiation != null) request += '&solarradiation=' + station.solarRadiation;
-  if (station.uv != null) request += '&UV=' + station.uv;
-  if (station.imperial.precipRate != null) request += '&rainin=' + station.imperial.precipRate;
-  if (station.imperial.precipTotal != null) request += '&dailyrainin=' + station.imperial.precipTotal;
+  request += '&dateutc=' + Utilities.formatDate(new Date(conditions.time), 'UTC', "yyyy-MM-dd'+'HH:mm:ss");
+  if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
+  if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;
+  if (conditions.windSpeed != null) request += '&windspeedmph=' + conditions.windSpeed.mph;
+  if (conditions.windGust != null) request += '&windgustmph=' + conditions.windGust.mph;
+  if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
+  if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
+  if (conditions.uv != null) request += '&uv=' + conditions.uv;
+  if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
+  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
   request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw';
   
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -113,23 +461,23 @@ function updatePWSWeather_() {
 
 // official api docs are private 🙄
 // https://gitlab.com/acuparse/acuparse/-/blob/dev/src/fcn/cron/uploaders/weathercloud.php
-function updateWeathercloud_() {
+function updateWeatherCloud_() {
   
-  let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   let request = 'http://api.weathercloud.net/v01/set';
   request += '?wid=' + weathercloudID;
   request += '&key=' + weathercloudAPIKey;
-  request += '&date=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'yyyyMMdd');
-  request += '&time=' + Utilities.formatDate(new Date(station.obsTimeUtc), 'UTC', 'HHmm');
-  request += '&temp=' + (new Number(station.imperial.temp).fToC() * 10).toFixedNumber(0);
-  if (station.imperial.windSpeed != null) request += '&wspd=' + (new Number(station.imperial.windSpeed).mphToMPS() * 10).toFixedNumber(0);
-  if (station.winddir != null) request += '&wdir=' + station.winddir;
-  if (station.imperial.pressure != null) request += '&bar=' + (new Number(station.imperial.pressure).inhgTohPa() * 10).toFixedNumber(0);
-  if (station.humidity != null) request += '&hum=' + station.humidity.toFixedNumber(0);
-  if (station.imperial.precipRate != null) request += '&rainrate=' + (new Number(station.imperial.precipRate).inTomm() * 10).toFixedNumber(0);
-  if (station.uv != null) request += '&uvi=' + (station.uv * 10);
-  request += '&software=appsscriptwundergroundforwarder';
+  request += '&date=' + Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyyMMdd');
+  request += '&time=' + Utilities.formatDate(new Date(conditions.time), 'UTC', 'HHmm');
+  if (conditions.temp != null) request += '&temp=' + (conditions.temp.c * 10);
+  if (conditions.windSpeed != null) request += '&wspd=' + (conditions.windSpeed.mps * 10).toFixedNumber(0);
+  if (conditions.winddir != null) request += '&wdir=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&bar=' + (conditions.pressure.hPa * 10).toFixedNumber(0);
+  if (conditions.humidity != null) request += '&hum=' + conditions.humidity;
+  if (conditions.uv != null) request += '&uvi=' + (conditions.uv * 10);
+  if (conditions.precipRate != null) request += '&rainrate=' + (conditions.precipRate.mm * 10).toFixedNumber(0);
+  request += '&software=appsscriptwundergroundforwarder' + version;
   
   let response = UrlFetchApp.fetch(request).getContentText();
 
@@ -144,20 +492,20 @@ function updateWeathercloud_() {
 // https://openweathermap.org/stations
 function updateOpenWeatherMap_() {
   
-  let station = JSON.parse(CacheService.getScriptCache().get('weatherstation'));
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   const stationsDetails = JSON.parse(UrlFetchApp.fetch('https://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey).getContentText());
   const internalStationID = stationsDetails.find(station => station['external_id'] == openWeatherMapStationID)['id'];
   
   let measurements = {"station_id": internalStationID};
-  measurements['dt'] = (new Date(station.obsTimeUtc).getTime() / 1000).toFixedNumber(0);
-  measurements['temperature'] = new Number(station.imperial.temp).fToC().toFixedNumber(1);
-  if (station.imperial.windSpeed != null) measurements['wind_speed'] = new Number(station.imperial.windSpeed).mphToMPS().toFixedNumber(0);
-  if (station.imperial.windGust != null) measurements['wind_gust'] = new Number(station.imperial.windGust).mphToMPS().toFixedNumber(0);
-  if (station.winddir != null) measurements['wind_deg'] = station.winddir;
-  if (station.imperial.pressure != null) measurements['pressure'] = new Number(station.imperial.pressure).inhgTohPa().toFixedNumber(0);
-  if (station.imperial.dewpt != null) measurements['dew_point'] = new Number(station.imperial.dewpt).fToC().toFixedNumber(1);
-  if (station.humidity != null) measurements['humidity'] = station.humidity.toFixedNumber(0);
+  measurements['dt'] = (conditions.time / 1000).toFixedNumber(0);
+  if (conditions.temp) measurements['temperature'] = conditions.temp.c;
+  if (conditions.dewpoint != null) measurements['dew_point'] = conditions.dewpoint.c;
+  if (conditions.windSpeed != null) measurements['wind_speed'] = conditions.windSpeed.mps;
+  if (conditions.windGust != null) measurements['wind_gust'] = conditions.windGust.mps;
+  if (conditions.winddir != null) measurements['wind_deg'] = conditions.winddir;
+  if (conditions.pressure != null) measurements['pressure'] = conditions.pressure.hPa;
+  if (conditions.humidity != null) measurements['humidity'] = conditions.humidity;
   
   measurements = [measurements];
   
@@ -185,7 +533,9 @@ function checkGithubReleaseVersion_() {
     console.warn('Problem attempting to check for newer Github version');
     return;
   }
-  switch (compareSemver_(version, latestRelease.tag_name)) {
+  if (version.charAt(0) === 'v') version = version.substring(1);
+  latestRelease.tag_name.trim().charAt(0).toLowerCase() === 'v' ? latestRelease = latestRelease.tag_name.substring(1) : latestRelease = latestRelease.tag_name;
+  switch (compareSemver_(version, latestRelease)) {
     case 0:
       // console.info('Script is up-to-date');
       break;
@@ -247,7 +597,13 @@ function compareSemver_(a, b) {
 };
 
 Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
+Number.prototype.cToF = function() { return (9 / 5) * this + 32; }
 Number.prototype.mphToMPS = function() { return this * 0.44704; }
-Number.prototype.inhgTohPa = function() { return this * 33.863886666667; }
+Number.prototype.mpsToMPH = function() { return this * 2.23694; }
+Number.prototype.kphToMPS = function() { return this * 0.27778; }
+Number.prototype.kphToMPH = function() { return this * 0.62137; }
+Number.prototype.inHgTohPa = function() { return this * 33.86389; }
+Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
+Number.prototype.mmToIn = function() { return this * 0.03937; }
 Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }
