@@ -66,7 +66,7 @@ and periodically sends it on to
     <details>
       <summary>Wunderground</summary>
 
-      Sends to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol).
+      Send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol).
 
       - Set `updateWunderground` to `true` on Line 29
       - Set your `wundergroundAPIKey` on Line 30
@@ -75,7 +75,7 @@ and periodically sends it on to
     <details>
       <summary>Windy</summary>
 
-      Sends to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy).
+      Send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy).
 
       - Set `updateWindy` to `true` on Line 33
       - Set your `windyAPIKey` on Line 34
@@ -84,7 +84,7 @@ and periodically sends it on to
     <details>
       <summary>PWSWeather</summary>
 
-      Sends to [PWSWeather](https://dashboard.pwsweather.com/).
+      Send to [PWSWeather](https://dashboard.pwsweather.com/).
 
       - Set `updatePWSWeather` to `true` on Line 37
       - Set your `pwsWeatherAPIKey` from your station's admin page on line 38
@@ -93,7 +93,7 @@ and periodically sends it on to
     <details>
       <summary>WeatherCloud</summary>
 
-      Sends to [WeatherCloud](https://app.weathercloud.net/).
+      Send to [WeatherCloud](https://app.weathercloud.net/). Retrieve your station's ID and API Key by going to [your Devices](https://app.weathercloud.net/devices), then clicking Settings → 🔌 Link on your station.
 
       - Set `updateWeatherCloud` to `true` on Line 41
       - Set your `weathercloudStationId` on line 42
@@ -103,7 +103,7 @@ and periodically sends it on to
     <details>
       <summary>OpenWeatherMap</summary>
 
-      Sends to [OpenWeatherMap](https://openweathermap.org/stations).
+      Send to [OpenWeatherMap](https://openweathermap.org/stations).
 
       - Set `updateOpenWeatherMap` to `true` on Line 46
       - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 47
