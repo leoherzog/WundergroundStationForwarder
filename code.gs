@@ -185,6 +185,8 @@ function refreshFromAcurite_() {
     CacheService.getScriptCache().put('myAcuriteAccountId', accountId, 21600);
     CacheService.getScriptCache().put('myAcuriteToken', token, 21600);
 
+    Utilities.sleep(5000);
+
   }
 
   headers['x-one-vue-token'] = token;
