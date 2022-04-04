@@ -524,6 +524,35 @@ function updateOpenWeatherMap_() {
   
 }
 
+function createNewOWMStation_() {
+  
+  let stationDetails = {
+    "external_id": openWeatherMapStationID,
+    "name": "Human Friendly Name of Your Station",
+    "latitude": 40.6892368,
+    "longitude": -74.0444219,
+    "altitude": 305
+  }
+
+  let options = {
+    "headers": {"Content-Type": "application/json"},
+    "contentType": "application/json",
+    "type": "post",
+    "payload": JSON.stringify(stationDetails)
+  }
+
+  let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey, options);
+
+  if (response.getResponseCode() === 201) {
+    console.log('Successfully added ' + stationDetails.external_id + ' (' + stationDetails.name + ')! Details:');
+    console.log(response.getContentText());
+  } else {
+    console.log('Problem adding your station. Response code: ' + response.getResponseCode());
+    console.log(response.getContentText());
+  }
+
+}
+
 function checkGithubReleaseVersion_() {
   let latestRelease;
   try {
