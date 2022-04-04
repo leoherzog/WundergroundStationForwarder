@@ -2,14 +2,14 @@
 
 This code is built to be hosted on the free [Google Apps Script](https://developers.google.com/apps-script) platform. It takes in weather station data from:
 
-- [Wunderground](https://wunderground.com/member/api-keys)
-- [MyAcurite](https://myacurite.com/)
+- [Wunderground](https://wunderground.com/member/api-keys),
+- [MyAcurite](https://myacurite.com/),
 - [Davis WeatherLink](https://weatherlink.com/), or
 - [WeatherFlow Tempest](https://tempestwx.com/)
 
 and periodically sends it on to one or more of
 
-- [Wunderground](https://wunderground.com/pws/overview)
+- [Wunderground](https://wunderground.com/pws/overview),
 - [Windy](https://stations.windy.com/),
 - [PWSWeather](https://pwsweather.com/),
 - [WeatherCloud](https://weathercloud.com/), and/or
@@ -117,7 +117,7 @@ If you ever make changes to the API keys or enabled services, just run the **Sch
 ## How to Update
 
 1. Copy the code from [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest/download/code.gs) from [the latest release](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest) in this repository to your `Code.gs` file and `💾 Save`.
-2. Make sure your API Keys settings on lines 10 through 48 are correct.
+2. Make sure your API Keys and settings on lines 10 through 48 are correct.
 3. Run the "Schedule" function again with the `▷ Run` button in the toolbar.
 
 ## License
