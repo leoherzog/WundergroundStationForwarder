@@ -190,9 +190,39 @@ function refreshFromAcurite_() {
   }
 
   headers['x-one-vue-token'] = token;
+  
+  let hubs;
+  try {
+    hubs = UrlFetchApp.fetch('https://marapi.myacurite.com/accounts/' + accountId + '/dashboard/hubs/', {"headers": headers}).getContentText();
+    hubs = JSON.parse(hubs);
+  }
+  catch(e) {
 
-  let hubs = UrlFetchApp.fetch('https://marapi.myacurite.com/accounts/' + accountId + '/dashboard/hubs/', {"headers": headers}).getContentText();
-  hubs = JSON.parse(hubs);
+    const credentials = {
+      "remember": true,
+      "email": acuriteUsername,
+      "password": acuritePassword
+    }
+
+    let token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
+      "headers": headers,
+      "method": "post",
+      "payload": JSON.stringify(credentials)
+    }).getContentText();
+    token = JSON.parse(token);
+
+    accountId = token['user']['account_users'][0]['account_id'].toString();
+    token = token['token_id'];
+
+    CacheService.getScriptCache().put('myAcuriteAccountId', accountId, 21600);
+    CacheService.getScriptCache().put('myAcuriteToken', token, 21600);
+
+    Utilities.sleep(5000);
+
+    hubs = UrlFetchApp.fetch('https://marapi.myacurite.com/accounts/' + accountId + '/dashboard/hubs/', {"headers": headers}).getContentText();
+    hubs = JSON.parse(hubs);
+
+  }
 
   // console.log(JSON.stringify(hubs));
 
