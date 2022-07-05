@@ -38,7 +38,7 @@ const updatePWSWeather = false;
 const pwsWeatherAPIKey = 'XXXXXXXXXXX';
 const pwsWeatherStationID = 'XXXXXXXXXXX';
 ///
-const updateWeathercloud = false;
+const updateWeatherCloud = false;
 const weathercloudAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const weathercloudID = 'xxxxxxxxxxxxxxxx';
 const hasWeatherCloudPro = false;
