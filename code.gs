@@ -260,7 +260,7 @@ function refreshFromAcurite_() {
     "mps": windgust.chart_unit === 'km/s' ? new Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windgust.last_reading_value).mphToMPS().toFixedNumber(0)
   }
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
-  if (winddir != null) conditions.winddir = winddir.last_reading_value;
+  if (winddir != null) conditions.winddir = new Number(winddir.last_reading_value);
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
     "inHg": pressure.chart_unit === 'inHg' ? pressure.last_reading_value : new Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
