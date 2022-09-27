@@ -57,7 +57,7 @@ const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
 
 */
 
-let version = 'v2.0.1';
+let version = 'v2.0.2';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
