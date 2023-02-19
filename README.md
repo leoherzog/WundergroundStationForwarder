@@ -12,8 +12,9 @@ and periodically sends it on to
 - [Wunderground](https://wunderground.com/pws/overview),
 - [Windy](https://stations.windy.com/),
 - [PWSWeather](https://pwsweather.com/),
-- [WeatherCloud](https://weathercloud.com/), and/or
-- [OpenWeatherMap](https://openweathermap.org/stations).
+- [WeatherCloud](https://weathercloud.com/),
+- [OpenWeatherMap](https://openweathermap.org/stations), and/or
+- [WindGuru](https://www.windguru.cz/map/station/).
 
 ## Setup
 
@@ -103,11 +104,20 @@ and periodically sends it on to
     <details>
       <summary>OpenWeatherMap</summary>
 
-      Send to [OpenWeatherMap](https://openweathermap.org/stations).
+      Send to [OpenWeatherMap](https://openweathermap.org/stations). Creation of an OpenWeatherMap station must be done by API, not on the OpenWeatherMap website. More information is available in [the OpenWeatherMap Station API documentation](https://openweathermap.org/stations#create_station). The basic concept for what must be done is available in the `createNewOWMStation_()` function. Remove the `_` character from the name of that function to make it selectable from the `▷ Run` button in the toolbar. If you do so, make sure you note your new station's ID and other details in the log after running! Then:
 
       - Set `updateOpenWeatherMap` to `true` on Line 46
       - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 47
-      - Set your `openWeatherMapStationId` on line 48 to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station)
+      - Set your `openWeatherMapStationId` to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station) on line 48
+    </details>
+    <details>
+      <summary>WindGuru</summary>
+
+      Send to [WindGuru](https://www.windguru.cz/map/station/). Start by [registering a new "Other / Upload API" station](https://stations.windguru.cz/register.php?id_type=16), then:
+
+      - Set `updateWindGuru` to `true` on Line 50
+      - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 51
+      - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 52
     </details>
 
 4. Run the "Schedule" function with the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar.

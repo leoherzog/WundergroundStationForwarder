@@ -46,6 +46,10 @@ const hasWeatherCloudPro = false;
 const updateOpenWeatherMap = false;
 const openWeatherMapAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
+///
+const updateWindGuru = false;
+const windGuruStationUID = 'xxxxxxxxxx';
+const windGuruStationPassword = 'xxxxxxxxxxxxxxxx';
 
 
 /*
@@ -57,7 +61,7 @@ const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
 
 */
 
-let version = 'v2.0.2';
+let version = 'v2.1.0';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -84,6 +88,7 @@ function Schedule() {
   if (updatePWSWeather) ScriptApp.newTrigger('updatePWSWeather_').timeBased().everyMinutes(5).create();
   if (updateWeatherCloud) ScriptApp.newTrigger('updateWeatherCloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
+  if (updateWindGuru) ScriptApp.newTrigger('updateWindGuru_').timeBased().everyMinutes(1).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
 }
@@ -108,35 +113,37 @@ function refreshFromIBM_() {
   let conditions = {};
   conditions.time = new Date(ibmConditions.obsTimeUtc).getTime();
   if (ibmConditions.imperial.temp != null) conditions.temp = {
-    "f": ibmConditions.imperial.temp,
+    "f": new Number(ibmConditions.imperial.temp),
     "c": new Number(ibmConditions.imperial.temp).fToC().toFixedNumber(1)
   }
   if (ibmConditions.imperial.dewpt != null) conditions.dewpoint = {
-    "f": ibmConditions.imperial.dewpt,
+    "f": new Number(ibmConditions.imperial.dewpt),
     "c": new Number(ibmConditions.imperial.dewpt).fToC().toFixedNumber(1)
   }
   if (ibmConditions.imperial.windSpeed != null) conditions.windSpeed = {
-    "mph": ibmConditions.imperial.windSpeed,
-    "mps": new Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0)
+    "mph": new Number(ibmConditions.imperial.windSpeed),
+    "mps": new Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0),
+    "knots": new Number(ibmConditions.imperial.windSpeed).mphToKnots().toFixedNumber(0)
   }
   if (ibmConditions.imperial.windGust != null) conditions.windGust = {
-    "mph": ibmConditions.imperial.windGust,
-    "mps": new Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0)
+    "mph": new Number(ibmConditions.imperial.windGust),
+    "mps": new Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0),
+    "knots": new Number(ibmConditions.imperial.windGust).mphToKnots().toFixedNumber(0)
   }
   if (ibmConditions.winddir != null) conditions.winddir = ibmConditions.winddir;
   if (ibmConditions.imperial.pressure != null) conditions.pressure = {
-    "inHg": ibmConditions.imperial.pressure,
+    "inHg": new Number(ibmConditions.imperial.pressure),
     "hPa": new Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(1)
   }
-  if (ibmConditions.humidity != null) conditions.humidity = ibmConditions.humidity.toFixedNumber(0);
+  if (ibmConditions.humidity != null) conditions.humidity = new Number(ibmConditions.humidity).toFixedNumber(0);
   if (ibmConditions.uv != null) conditions.uv = ibmConditions.uv;
   if (ibmConditions.solarRadiation != null) conditions.solarRadiation = ibmConditions.solarRadiation;
   if (ibmConditions.imperial.precipRate != null) conditions.precipRate = {
-    "in": ibmConditions.imperial.precipRate,
+    "in": new Number(ibmConditions.imperial.precipRate),
     "mm": new Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(2)
   }
   if (ibmConditions.imperial.precipTotal != null) conditions.precipTotal = {
-    "in": ibmConditions.imperial.precipTotal,
+    "in": new Number(ibmConditions.imperial.precipTotal),
     "mm": new Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
   }
   
@@ -241,30 +248,32 @@ function refreshFromAcurite_() {
   conditions.time = new Date(acuriteConditions.last_check_in_at).getTime();
   let temp = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Temperature');
   if (temp != null) conditions.temp = {
-    "f": temp.chart_unit === 'F' ? temp.last_reading_value : new Number(temp.last_reading_value).cToF().toFixedNumber(1),
-    "c": temp.chart_unit === 'C' ? temp.last_reading_value : new Number(temp.last_reading_value).fToC().toFixedNumber(1)
+    "f": temp.chart_unit === 'F' ? new Number(temp.last_reading_value).toFixedNumber(1) : new Number(temp.last_reading_value).cToF().toFixedNumber(1),
+    "c": temp.chart_unit === 'C' ? new Number(temp.last_reading_value).toFixedNumber(1) : new Number(temp.last_reading_value).fToC().toFixedNumber(1)
   }
   let dewpoint = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Dew Point');
   if (dewpoint != null) conditions.dewpoint = {
-    "f": dewpoint.chart_unit === 'F' ? dewpoint.last_reading_value : new Number(dewpoint.last_reading_value).cToF().toFixedNumber(1),
-    "c": dewpoint.chart_unit === 'C' ? dewpoint.last_reading_value : new Number(dewpoint.last_reading_value).fToC().toFixedNumber(1)
+    "f": dewpoint.chart_unit === 'F' ? new Number(dewpoint.last_reading_value).toFixedNumber(1) : new Number(dewpoint.last_reading_value).cToF().toFixedNumber(1),
+    "c": dewpoint.chart_unit === 'C' ? new Number(dewpoint.last_reading_value).toFixedNumber(1) : new Number(dewpoint.last_reading_value).fToC().toFixedNumber(1)
   }
   let windspeed = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'WindSpeedAvg');
   if (windspeed != null) conditions.windSpeed = {
-    "mph": windspeed.chart_unit === 'mph' ? windspeed.last_reading_value : new Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windspeed.chart_unit === 'km/s' ? new Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0)
+    "mph": windspeed.chart_unit === 'mph' ? new Number(windspeed.last_reading_value) : new Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
+    "mps": windspeed.chart_unit === 'km/h' ? new Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0),
+    "knots": windspeed.chart_unit === 'mph' ? new Number(windspeed.last_reading_value).mphToKnots().toFixedNumber(0) : new Number(windspeed.last_reading_value).kphToKnots().toFixedNumber(0)
   }
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
-    "mph": windgust.chart_unit === 'mph' ? windgust.last_reading_value : new Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windgust.chart_unit === 'km/s' ? new Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windgust.last_reading_value).mphToMPS().toFixedNumber(0)
+    "mph": windgust.chart_unit === 'mph' ? new Number(windgust.last_reading_value) : new Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
+    "mps": windgust.chart_unit === 'km/h' ? new Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : new Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0),
+    "knots": windspeed.chart_unit === 'mph' ? new Number(windgust.last_reading_value).mphToKnots().toFixedNumber(0) : new Number(windgust.last_reading_value).kphToKnots().toFixedNumber(0)
   }
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = new Number(winddir.last_reading_value);
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
-    "inHg": pressure.chart_unit === 'inHg' ? pressure.last_reading_value : new Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
-    "hPa": pressure.chart_unit === 'hPa' ? pressure.last_reading_value : new Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
+    "inHg": pressure.chart_unit === 'inHg' ? new Number(pressure.last_reading_value).toFixedNumber(0) : new Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
+    "hPa": pressure.chart_unit === 'hPa' ? new Number(pressure.last_reading_value).toFixedNumber(0) : new Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
   }
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'humidity');
   if (humidity != null) conditions.humidity = humidity.last_reading_value;
@@ -274,8 +283,8 @@ function refreshFromAcurite_() {
   if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
   if (rain != null) conditions.precipRate = {
-    "in": rain.chart_unit === 'in' ? rain.last_reading_value : new Number(rain.last_reading_value).mmToIn().toFixedNumber(0),
-    "mm": rain.chart_unit === 'mm' ? rain.last_reading_value : new Number(rain.last_reading_value).inTomm().toFixedNumber(0)
+    "in": rain.chart_unit === 'in' ? new Number(rain.last_reading_value) : new Number(rain.last_reading_value).mmToIn().toFixedNumber(0),
+    "mm": rain.chart_unit === 'mm' ? new Number(rain.last_reading_value) : new Number(rain.last_reading_value).inTomm().toFixedNumber(0)
   }
 
   console.log(JSON.stringify(conditions));
@@ -306,36 +315,36 @@ function refreshFromDavis_() {
   let conditions = {};
   conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
   if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
-    "f": davisConditions.sensors[0].data[0].temp_out,
+    "f": new Number(davisConditions.sensors[0].data[0].temp_out),
     "c": new Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
   }
   if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
-    "f": davisConditions.sensors[0].data[0].dew_point,
+    "f": new Number(davisConditions.sensors[0].data[0].dew_point),
     "c": new Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(1)
   }
   if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
-    "mph": davisConditions.sensors[0].data[0].wind_speed,
+    "mph": new Number(davisConditions.sensors[0].data[0].wind_speed),
     "mps": new Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
-    "mph": davisConditions.sensors[0].data[0].wind_gust_10_min,
+    "mph": new Number(davisConditions.sensors[0].data[0].wind_gust_10_min),
     "mps": new Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
   if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
-    "inHg": davisConditions.sensors[0].data[0].bar,
+    "inHg": new Number(davisConditions.sensors[0].data[0].bar),
     "hPa": new Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(1)
   }
   if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = davisConditions.sensors[0].data[0].hum_out.toFixedNumber(0);
   if (davisConditions.sensors[0].data[0].uv != null) conditions.uv = davisConditions.sensors[0].data[0].uv;
   if (davisConditions.sensors[0].data[0].solar_rad != null) conditions.solarRadiation = davisConditions.sensors[0].data[0].solar_rad;
   if (davisConditions.sensors[0].data[0].rain_storm_in != null) conditions.precipRate = {
-    "in": davisConditions.sensors[0].data[0].rain_storm_in,
-    "mm": davisConditions.sensors[0].data[0].rain_storm_mm
+    "in": new Number(davisConditions.sensors[0].data[0].rain_storm_in),
+    "mm": new Number(davisConditions.sensors[0].data[0].rain_storm_mm)
   }
   if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipTotal = {
-    "in": davisConditions.sensors[0].data[0].rain_day_in,
-    "mm": davisConditions.sensors[0].data[0].rain_day_mm
+    "in": new Number(davisConditions.sensors[0].data[0].rain_day_in),
+    "mm": new Number(davisConditions.sensors[0].data[0].rain_day_mm)
   }
   
   console.log(JSON.stringify(conditions));
@@ -356,35 +365,35 @@ function refreshFromWeatherflow_() {
   conditions.time = weatherflowConditions.obs[0].timestamp * 1000;
   if (weatherflowConditions.obs[0].air_temperature != null) conditions.temp = {
     "f": new Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
-    "c": weatherflowConditions.obs[0].air_temperature
+    "c": new Number(weatherflowConditions.obs[0].air_temperature)
   }
   if (weatherflowConditions.obs[0].dew_point != null) conditions.dewpoint = {
     "f": new Number(weatherflowConditions.obs[0].dew_point).cToF().toFixedNumber(1),
-    "c": weatherflowConditions.obs[0].dew_point
+    "c": new Number(weatherflowConditions.obs[0].dew_point)
   }
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
-    "mph": weatherflowConditions.obs[0].wind_avg,
+    "mph": new Number(weatherflowConditions.obs[0].wind_avg),
     "mps": new Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
-    "mph": weatherflowConditions.obs[0].wind_gust,
+    "mph": new Number(weatherflowConditions.obs[0].wind_gust),
     "mps": new Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
     "inHg": new Number(weatherflowConditions.obs[0].station_pressure).hPaToinHg().toFixedNumber(1),
-    "hPa": weatherflowConditions.obs[0].station_pressure
+    "hPa": new Number(weatherflowConditions.obs[0].station_pressure)
   }
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = weatherflowConditions.obs[0].relative_humidity;
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
   if (weatherflowConditions.obs[0].solar_radiation != null) conditions.solarRadiation = weatherflowConditions.obs[0].solar_radiation;
   if (weatherflowConditions.obs[0].precip != null) conditions.precipRate = {
     "in": new Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
-    "mm": weatherflowConditions.obs[0].precip
+    "mm": new Number(weatherflowConditions.obs[0].precip)
   }
   if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipTotal = {
     "in": new Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
-    "mm": weatherflowConditions.obs[0].precip_accum_local_day
+    "mm": new Number(weatherflowConditions.obs[0].precip_accum_local_day)
   }
   
   console.log(JSON.stringify(conditions));
@@ -585,6 +594,40 @@ function createNewOWMStation_() {
 
 }
 
+// https://stations.windguru.cz/upload_api.php
+function updateWindGuru_() {
+  
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+  
+  let request = 'http://www.windguru.cz/upload/api.php';
+  request += '?uid=' + windGuruStationUID;
+  let salt = new Date(conditions.time).getTime();
+  request += '&salt=' + salt;
+  let hash = md5_(salt + windGuruStationUID + windGuruStationPassword);
+  request += '&hash=' + hash;
+  request += '&interval=60';
+  if (conditions.temp != null) request += '&temperature=' + conditions.temp.c;
+  if (conditions.windSpeed != null) request += '&wind_avg=' + conditions.windSpeed.knots;
+  if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.knots;
+  if (conditions.winddir != null) request += '&wind_direction=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&mslp=' + conditions.pressure.hPa;
+  if (conditions.humidity != null) request += '&rh=' + conditions.humidity;
+  if (conditions.precipRate != null) request += '&precip=' + conditions.precipRate.mm;
+  
+  let response = UrlFetchApp.fetch(request).getContentText();
+  
+  console.log(response);
+  
+  return response;
+  
+}
+
+// https://gist.github.com/rcknr/ad7d4623b0a2d90415323f96e634cdee
+function md5_(input) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, input)
+    .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '');
+}
+
 function checkGithubReleaseVersion_() {
   let latestRelease;
   try {
@@ -663,6 +706,8 @@ Number.prototype.mphToMPS = function() { return this * 0.44704; }
 Number.prototype.mpsToMPH = function() { return this * 2.23694; }
 Number.prototype.kphToMPS = function() { return this * 0.27778; }
 Number.prototype.kphToMPH = function() { return this * 0.62137; }
+Number.prototype.mphToKnots = function() { return this * 0.868976 };
+Number.prototype.kphToKnots = function() { return this * 0.539957 };
 Number.prototype.inHgTohPa = function() { return this * 33.86389; }
 Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
