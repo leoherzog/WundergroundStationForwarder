@@ -1,5 +1,5 @@
 /*
- * Wunderground Station Forwarder
+ * Station Forwarder
  * Fill in the API Keys (and which other services you'd like to update) below, and "▷ Run" the Schedule function. You're all set!
  * You can see updates in the "☰▶ Executions" section on the left. If you make any changes to the API Keys or enabled services, run Schedule again.
  */
@@ -433,7 +433,7 @@ function updateWunderground_() {
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
   if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
-  request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw&realtime=1&rtfreq=60';
+  request += '&softwaretype=appsscriptforwarder&action=updateraw&realtime=1&rtfreq=60';
 
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -490,7 +490,7 @@ function updatePWSWeather_() {
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
   if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
-  request += '&softwaretype=appsscriptwundergroundforwarder&action=updateraw';
+  request += '&softwaretype=appsscriptforwarder&action=updateraw';
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -518,7 +518,7 @@ function updateWeatherCloud_() {
   if (conditions.humidity != null) request += '&hum=' + conditions.humidity;
   if (conditions.uv != null) request += '&uvi=' + (conditions.uv * 10);
   if (conditions.precipRate != null) request += '&rainrate=' + (conditions.precipRate.mm * 10).toFixedNumber(0);
-  request += '&software=appsscriptwundergroundforwarder' + version;
+  request += '&software=appsscriptforwarder' + version;
   
   let response = UrlFetchApp.fetch(request).getContentText();
 

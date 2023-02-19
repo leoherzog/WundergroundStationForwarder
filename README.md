@@ -1,4 +1,4 @@
-# Wunderground Station Forwarder
+# Station Forwarder
 
 This code is built to be hosted on the free [Google Apps Script](https://developers.google.com/apps-script) platform. It takes in weather station data from:
 
@@ -136,6 +136,6 @@ Feel free to take a look at the source and adapt as you please. This source is l
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
 
-Wunderground Station Forwarder is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
+Station Forwarder is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
 
 <a href="https://www.buymeacoffee.com/leoherzog" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 38px !important;width: 160px !important;" ></a>
