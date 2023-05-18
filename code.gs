@@ -61,7 +61,7 @@ const windGuruStationPassword = 'xxxxxxxxxxxxxxxx';
 
 */
 
-let version = 'v2.1.0';
+let version = 'v2.1.1';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -179,7 +179,7 @@ function refreshFromAcurite_() {
       "password": acuritePassword
     }
 
-    let token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
+    token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
       "headers": headers,
       "method": "post",
       "payload": JSON.stringify(credentials)
