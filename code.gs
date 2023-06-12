@@ -50,7 +50,10 @@ const openWeatherMapStationID = 'xxxxxxxxxxxxxxxx';
 const updateWindGuru = false;
 const windGuruStationUID = 'xxxxxxxxxx';
 const windGuruStationPassword = 'xxxxxxxxxxxxxxxx';
-
+///
+const updateCWOP = false;
+const cwopStationIDOrHamCallsign = 'CW0001';
+const cwopValidationCode = null;
 
 /*
   ____          _   _       _     _____    _ _ _     ____       _               
@@ -61,7 +64,7 @@ const windGuruStationPassword = 'xxxxxxxxxxxxxxxx';
 
 */
 
-let version = 'v2.1.1';
+let version = 'v2.2.0';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -89,6 +92,7 @@ function Schedule() {
   if (updateWeatherCloud) ScriptApp.newTrigger('updateWeatherCloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
   if (updateWindGuru) ScriptApp.newTrigger('updateWindGuru_').timeBased().everyMinutes(1).create();
+  if (updateCWOP) ScriptApp.newTrigger('updateCWOP_').timeBased().everyMinutes(5).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
 }
@@ -108,10 +112,14 @@ function refreshFromIBM_() {
   let ibmConditions = fetchJSON_('https://api.weather.com/v2/pws/observations/current?stationId=' + ibmStationId + '&format=json&units=e&numericPrecision=decimal&apiKey=' + ibmAPIKey);
   if (!ibmConditions) return false; // still no luck? give up
 
+  // console.log(JSON.stringify(ibmConditions));
+
   ibmConditions = ibmConditions['observations'][0];
 
   let conditions = {};
   conditions.time = new Date(ibmConditions.obsTimeUtc).getTime();
+  conditions.latitude = ibmConditions.lat;
+  conditions.longitude = ibmConditions.lon;
   if (ibmConditions.imperial.temp != null) conditions.temp = {
     "f": Number(ibmConditions.imperial.temp),
     "c": Number(ibmConditions.imperial.temp).fToC().toFixedNumber(1)
@@ -186,6 +194,8 @@ function refreshFromAcurite_() {
     }).getContentText();
     token = JSON.parse(token);
 
+    // console.log(JSON.stringify(token));
+
     accountId = token['user']['account_users'][0]['account_id'].toString();
     token = token['token_id'];
 
@@ -246,6 +256,8 @@ function refreshFromAcurite_() {
 
   let conditions = {};
   conditions.time = new Date(acuriteConditions.last_check_in_at).getTime();
+  conditions.latitude = sensors.latitude;
+  conditions.longitude = sensors.longitude;
   let temp = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Temperature');
   if (temp != null) conditions.temp = {
     "f": temp.chart_unit === 'F' ? Number(temp.last_reading_value).toFixedNumber(1) : Number(temp.last_reading_value).cToF().toFixedNumber(1),
@@ -304,16 +316,23 @@ function refreshFromDavis_() {
 
   let davisStationInfo = fetchJSON_('https://api.weatherlink.com/v2/stations/?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
   if (!davisStationInfo) return false; // still no luck? give up
+    
+  // console.log(JSON.stringify(davisStationInfo));
 
-  let stationId = davisStationInfo.stations.find(station => station.station_name === davisStationName).station_id;
+  let station = davisStationInfo.stations.find(station => station.station_name === davisStationName);
+  let stationId = station.station_id;
   
   signature = Utilities.computeHmacSha256Signature('api-key' + davisApiKey + 'station-id' + stationId + 't' + now, davisApiSecret).map(function(chr){return (chr+256).toString(16).slice(-2)}).join('');
 
   let davisConditions = fetchJSON_('https://api.weatherlink.com/v2/current/' + stationId + '?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
   if (!davisConditions) return false; // still no luck? give up
 
+  // console.log(JSON.stringify(davisConditions));
+
   let conditions = {};
   conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
+  conditions.latitude = station.latitude;
+  conditions.longitude = station.longitude;
   if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
     "f": Number(davisConditions.sensors[0].data[0].temp_out),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
@@ -359,10 +378,13 @@ function refreshFromDavis_() {
 function refreshFromWeatherflow_() {
 
   let weatherflowConditions = fetchJSON_('https://swd.weatherflow.com/swd/rest/observations/station/' + weatherflowStationId + '?token=' + weatherflowPUT);
-  if (!weatherflowConditions) return false; // still no luck? give up
+  if (!weatherflowConditions || !weatherflowConditions?.obs || !weatherflowConditions?.obs.length) return false; // still no luck? give up
+  // console.log(JSON.stringify(weatherflowConditions));
 
   let conditions = {};
   conditions.time = weatherflowConditions.obs[0].timestamp * 1000;
+  conditions.latitude = weatherflowConditions.latitude;
+  conditions.longitude = weatherflowConditions.longitude;
   if (weatherflowConditions.obs[0].air_temperature != null) conditions.temp = {
     "f": Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].air_temperature)
@@ -433,7 +455,7 @@ function updateWunderground_() {
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
   if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
-  request += '&softwaretype=appsscriptforwarder&action=updateraw&realtime=1&rtfreq=60';
+  request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw&realtime=1&rtfreq=60';
 
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -617,6 +639,50 @@ function updateWindGuru_() {
   let response = UrlFetchApp.fetch(request).getContentText();
   
   console.log(response);
+  
+  return response;
+  
+}
+
+// Apps Script has no ability to open a TCP socket directly,
+// so we're using https://cwop.rest/ as an intermediary
+function updateCWOP_() {
+  
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+
+  if (conditions.temp == null || conditions.windSpeed == null || conditions.windGust == null || conditions.winddir == null) {
+    throw 'CWOP requires temp, wind direction, wind speed, and wind gust. Please ensure your station has those sensors. For more information, visit: http://wxqa.com/faq.html';
+  }
+
+  if (CacheService.getScriptCache().get('lastCwopTime') === conditions.time) {
+    console.error('Already sent packet for this time: ' + conditions.time);
+    return;
+  }
+  
+  let request = 'https://send.cwop.rest/';
+  request += '?id=' + cwopStationIDOrHamCallsign;
+  if (cwopValidationCode) request += '&validation=' + cwopValidationCode;
+  request += '&lat=' + conditions.latitude;
+  request += '&long=' + conditions.longitude;
+  request += '&time=' + conditions.time;
+  request += '&tempf=' + conditions.temp.f;
+  request += '&windspeedmph=' + conditions.windSpeed.mph;
+  request += '&windgustmph=' + conditions.windGust.mph;
+  request += '&winddir=' + conditions.winddir;
+  if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.hPa;
+  if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
+  if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
+  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
+  request += '&software=appsscriptforwarder' + version;
+
+  console.log(request);
+  
+  let response = UrlFetchApp.fetch(request).getContentText();
+  
+  console.log(response);
+  
+  CacheService.getScriptCache().put('lastCwopTime', conditions.time, 21600); // 6 hours
   
   return response;
   
