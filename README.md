@@ -13,8 +13,9 @@ and periodically sends it on to
 - [Windy](https://stations.windy.com/),
 - [PWSWeather](https://pwsweather.com/),
 - [WeatherCloud](https://weathercloud.com/),
-- [OpenWeatherMap](https://openweathermap.org/stations), and/or
-- [WindGuru](https://www.windguru.cz/map/station/).
+- [OpenWeatherMap](https://openweathermap.org/stations),
+- [WindGuru](https://www.windguru.cz/map/station/), and/or
+- [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
 
@@ -67,7 +68,7 @@ and periodically sends it on to
     <details>
       <summary>Wunderground</summary>
 
-      Send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol).
+      To send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol):
 
       - Set `updateWunderground` to `true` on Line 29
       - Set your `wundergroundAPIKey` on Line 30
@@ -76,7 +77,7 @@ and periodically sends it on to
     <details>
       <summary>Windy</summary>
 
-      Send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy).
+      To send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy):
 
       - Set `updateWindy` to `true` on Line 33
       - Set your `windyAPIKey` on Line 34
@@ -85,7 +86,7 @@ and periodically sends it on to
     <details>
       <summary>PWSWeather</summary>
 
-      Send to [PWSWeather](https://dashboard.pwsweather.com/).
+      To send to [PWSWeather](https://dashboard.pwsweather.com/):
 
       - Set `updatePWSWeather` to `true` on Line 37
       - Set your `pwsWeatherAPIKey` from your station's admin page on line 38
@@ -94,7 +95,9 @@ and periodically sends it on to
     <details>
       <summary>WeatherCloud</summary>
 
-      Send to [WeatherCloud](https://app.weathercloud.net/). Retrieve your station's ID and API Key by going to [your Devices](https://app.weathercloud.net/devices), then clicking Settings → 🔌 Link on your station.
+      To send to [WeatherCloud](https://app.weathercloud.net/):
+      
+      Retrieve your station's ID and API Key by going to [your Devices](https://app.weathercloud.net/devices), then clicking Settings → 🔌 Link on your station.
 
       - Set `updateWeatherCloud` to `true` on Line 41
       - Set your `weathercloudStationId` on line 42
@@ -104,7 +107,7 @@ and periodically sends it on to
     <details>
       <summary>OpenWeatherMap</summary>
 
-      Send to [OpenWeatherMap](https://openweathermap.org/stations). Creation of an OpenWeatherMap station must be done by API, not on the OpenWeatherMap website. More information is available in [the OpenWeatherMap Station API documentation](https://openweathermap.org/stations#create_station). The basic concept for what must be done is available in the `createNewOWMStation_()` function. Remove the `_` character from the name of that function to make it selectable from the `▷ Run` button in the toolbar. If you do so, make sure you note your new station's ID and other details in the log after running! Then:
+      Creation of a new OpenWeatherMap station must be done by API, not on the OpenWeatherMap website. More information is available in [the OpenWeatherMap Station API documentation](https://openweathermap.org/stations#create_station). The basic concept for what must be done is available in the `createNewOWMStation_()` function. Remove the `_` character from the name of that function to make it selectable from the `▷ Run` button in the toolbar. If you do so, make sure you note your new station's ID and other details in the log (available in the Executions tab in the sidebar after running!), then:
 
       - Set `updateOpenWeatherMap` to `true` on Line 46
       - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 47
@@ -113,11 +116,22 @@ and periodically sends it on to
     <details>
       <summary>WindGuru</summary>
 
-      Send to [WindGuru](https://www.windguru.cz/map/station/). Start by [registering a new "Other / Upload API" station](https://stations.windguru.cz/register.php?id_type=16), then:
+      Send to [WindGuru](https://www.windguru.cz/map/station/):
+      
+      Start by [registering a new "Other / Upload API" station](https://stations.windguru.cz/register.php?id_type=16), then:
 
       - Set `updateWindGuru` to `true` on Line 50
       - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 51
       - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 52
+    </details>
+    <details>
+      <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
+
+      Send to [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml). Start by [registering for a new station](https://madis.ncep.noaa.gov/madis_cwop.shtml), then when you receive your email:
+
+      - Set `updateCWOP` to `true` on Line 54
+      - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 55
+      - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 56
     </details>
 
 4. Run the "Schedule" function with the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar.
@@ -127,7 +141,7 @@ If you ever make changes to the API keys or enabled services, just run the **Sch
 ## How to Update
 
 1. Overwrite the code from [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest/download/code.gs) from [the latest release](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest) in this repository to your `Code.gs` file and `💾 Save`.
-2. Make sure your API Keys and settings on lines 10 through 52 are correct.
+2. Make sure your API Keys and settings on lines 10 through 56 are correct.
 3. Run the "Schedule" function again with the `▷ Run` button in the toolbar.
 
 ## License
