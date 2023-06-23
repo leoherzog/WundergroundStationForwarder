@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'ibm'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), or 'weatherflow' (tempestwx)
+const datasource = 'ibm'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), or 'ambient' (ambient weather)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationId = 'KXXXXXXXXXX';
@@ -23,6 +23,9 @@ const davisStationName = 'xxxxxxxxxxxxxxxx';
 // or
 const weatherflowPUT = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
 const weatherflowStationId = 'xxxxx';
+// or
+const ambientWeatherStationName = 'xxxxxx';
+const ambientWeatherApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 // Sending data
 
@@ -55,6 +58,8 @@ const updateCWOP = false;
 const cwopStationIDOrHamCallsign = 'CW0001';
 const cwopValidationCode = null;
 
+
+
 /*
   ____          _   _       _     _____    _ _ _     ____       _               
  |  _ \  ___   | \ | | ___ | |_  | ____|__| (_) |_  | __ )  ___| | _____      __
@@ -64,7 +69,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.2.0';
+let version = 'v2.3.0';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -84,6 +89,10 @@ function Schedule() {
     case 'weatherflow':
       refreshFromWeatherflow_();
       ScriptApp.newTrigger('refreshFromWeatherflow_').timeBased().everyMinutes(1).create();
+      break;
+    case 'ambient':
+      refreshFromAmbientWeather_();
+      ScriptApp.newTrigger('refreshFromAmbientWeather_').timeBased().everyMinutes(1).create();
       break;
   }
   if (updateWunderground) ScriptApp.newTrigger('updateWunderground_').timeBased().everyMinutes(1).create();
@@ -421,6 +430,62 @@ function refreshFromWeatherflow_() {
   console.log(JSON.stringify(conditions));
   
   CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+// https://ambientweather.docs.apiary.io/
+// https://github.com/ambient-weather/api-docs/wiki/Device-Data-Specs
+function refreshFromAmbientWeather_() {
+
+  let ambientWeatherDevices = fetchJSON_('https://rt.ambientweather.net/v1/devices?applicationKey=' + Utilities.newBlob(Utilities.base64Decode('NDNiYzQwMDgxOTc0NDVhNTk3NDg0ZjBiNjgwMjMxYTRiM2UwOTliNzc0NjY0MDlmYTgwN2Q3ZjQzN2YyYmViYg==')).getDataAsString() + '&apiKey=' + ambientWeatherApiKey);
+  if (!ambientWeatherDevices || !ambientWeatherDevices.length) return false; // still no luck? give up
+  // console.log(JSON.stringify(ambientWeatherDevices));
+
+  let station = ambientWeatherDevices.find(x => x.info.name === ambientWeatherStationName);
+  if (!station) throw 'Unable to find station named "' + ambientWeatherStationName + '" in your Ambient Weather account. Only ' + ambientWeatherDevices.map(x => x.info.name).join() + '.';
+
+  let conditions = {};
+  conditions.time = station.lastData.dateutc;
+  conditions.latitude = station.info.coords.coords.lat;
+  conditions.longitude = station.info.coords.coords.lon;
+  if (station.lastData.tempf != null) conditions.temp = {
+    "f": Number(station.lastData.tempf),
+    "c": Number(station.lastData.tempf).fToC().toFixedNumber(1)
+  }
+  if (station.lastData.dewPoint != null) conditions.dewpoint = {
+    "f": Number(station.lastData.dewPoint),
+    "c": Number(station.lastData.dewPoint).fToC().toFixedNumber(1)
+  }
+  if (station.lastData.windspeedmph != null) conditions.windSpeed = {
+    "mph": Number(station.lastData.windspeedmph),
+    "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(1)
+  }
+  if (station.lastData.windgustmph != null) conditions.windGust = {
+    "mph": Number(station.lastData.windgustmph),
+    "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(1)
+  }
+  if (station.lastData.winddir != null) conditions.winddir = station.lastData.winddir;
+  if (station.lastData.baromabsin != null) conditions.pressure = {
+    "inHg": Number(station.lastData.baromabsin),
+    "hPa": Number(station.lastData.baromabsin).inHgTohPa().toFixedNumber(1)
+  }
+  if (station.lastData.humidity != null) conditions.humidity = station.lastData.humidity;
+  if (station.lastData.uv != null) conditions.uv = station.lastData.uv;
+  if (station.lastData.solarradiation != null) conditions.solarRadiation = station.lastData.solarradiation;
+  if (station.lastData.hourlyrainin != null) conditions.precipRate = {
+    "in": Number(station.lastData.hourlyrainin),
+    "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(2)
+  }
+  if (station.lastData['24hourrainin'] != null) conditions.precipTotal = {
+    "in": Number(station.lastData['24hourrainin']),
+    "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
+  }
+  
+  console.log(JSON.stringify(conditions));
+  
+  // CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
   
   return JSON.stringify(conditions);
 
