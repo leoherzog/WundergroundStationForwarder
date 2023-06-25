@@ -69,7 +69,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.3.0';
+let version = 'v2.3.1';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -404,11 +404,18 @@ function refreshFromWeatherflow_() {
   }
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
     "mph": Number(weatherflowConditions.obs[0].wind_avg),
-    "mps": Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0)
+    "mps": Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0),
+    "kts": Number(weatherflowConditions.obs[0].wind_avg).mphToKnots()
   }
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
     "mph": Number(weatherflowConditions.obs[0].wind_gust),
-    "mps": Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0)
+    "mps": Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0),
+    "kts": Number(weatherflowConditions.obs[0].wind_gust).mphToKnots()
+  }
+  if (weatherflowConditions.obs[0].wind_lull != null) conditions.windLull = {
+    "mph": Number(weatherflowConditions.obs[0].wind_lull),
+    "mps": Number(weatherflowConditions.obs[0].wind_lull).mphToMPS().toFixedNumber(0),
+    "kts": Number(weatherflowConditions.obs[0].wind_lull).mphToKnots()
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
@@ -694,16 +701,17 @@ function updateWindGuru_() {
   request += '&hash=' + hash;
   request += '&interval=60';
   if (conditions.temp != null) request += '&temperature=' + conditions.temp.c;
-  if (conditions.windSpeed != null) request += '&wind_avg=' + conditions.windSpeed.knots;
-  if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.knots;
+  if (conditions.windSpeed != null) request += '&wind_avg=' + conditions.windSpeed.kts;
+  if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.kts;;
+  if (conditions.windLull != null) request += '&wind_min=' + conditions.windLull.kts;;
   if (conditions.winddir != null) request += '&wind_direction=' + conditions.winddir;
   if (conditions.pressure != null) request += '&mslp=' + conditions.pressure.hPa;
   if (conditions.humidity != null) request += '&rh=' + conditions.humidity;
   if (conditions.precipRate != null) request += '&precip=' + conditions.precipRate.mm;
   
   let response = UrlFetchApp.fetch(request).getContentText();
-  
-  console.log(response);
+
+  console.log("Response: " + response);
   
   return response;
   
