@@ -702,8 +702,8 @@ function updateWindGuru_() {
   request += '&interval=60';
   if (conditions.temp != null) request += '&temperature=' + conditions.temp.c;
   if (conditions.windSpeed != null) request += '&wind_avg=' + conditions.windSpeed.knots;
-  if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.knots;;
-  if (conditions.windLull != null) request += '&wind_min=' + conditions.windLull.knots;;
+  if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.knots;
+  if (conditions.windLull != null) request += '&wind_min=' + conditions.windLull.knots;
   if (conditions.winddir != null) request += '&wind_direction=' + conditions.winddir;
   if (conditions.pressure != null) request += '&mslp=' + conditions.pressure.hPa;
   if (conditions.humidity != null) request += '&rh=' + conditions.humidity;
