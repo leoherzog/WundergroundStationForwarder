@@ -69,7 +69,8 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.3.1';
+
+let version = 'v2.3.0.2';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -489,7 +490,7 @@ function refreshFromAmbientWeather_() {
   
   console.log(JSON.stringify(conditions));
   
-  // CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
   
   return JSON.stringify(conditions);
 
