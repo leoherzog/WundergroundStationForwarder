@@ -403,19 +403,16 @@ function refreshFromWeatherflow_() {
     "c": Number(weatherflowConditions.obs[0].dew_point)
   }
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
-    "mph": Number(weatherflowConditions.obs[0].wind_avg),
-    "mps": Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0),
-    "knots": Number(weatherflowConditions.obs[0].wind_avg).mphToKnots()
+    "ms": Number(weatherflowConditions.obs[0].wind_avg),
+    "knots": Number(weatherflowConditions.obs[0].wind_avg).msToKnots()
   }
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
-    "mph": Number(weatherflowConditions.obs[0].wind_gust),
-    "mps": Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0),
-    "knots": Number(weatherflowConditions.obs[0].wind_gust).mphToKnots()
+    "ms": Number(weatherflowConditions.obs[0].wind_gust),
+    "knots": Number(weatherflowConditions.obs[0].wind_gust).msToKnots()
   }
   if (weatherflowConditions.obs[0].wind_lull != null) conditions.windLull = {
-    "mph": Number(weatherflowConditions.obs[0].wind_lull),
-    "mps": Number(weatherflowConditions.obs[0].wind_lull).mphToMPS().toFixedNumber(0),
-    "knots": Number(weatherflowConditions.obs[0].wind_lull).mphToKnots()
+    "ms": Number(weatherflowConditions.obs[0].wind_lull),
+    "knots": Number(weatherflowConditions.obs[0].wind_lull).msToKnots()
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
@@ -845,8 +842,9 @@ Number.prototype.mphToMPS = function() { return this * 0.44704; }
 Number.prototype.mpsToMPH = function() { return this * 2.23694; }
 Number.prototype.kphToMPS = function() { return this * 0.27778; }
 Number.prototype.kphToMPH = function() { return this * 0.62137; }
-Number.prototype.mphToKnots = function() { return this * 0.868976 };
-Number.prototype.kphToKnots = function() { return this * 0.539957 };
+Number.prototype.msToKnots = function() { return this * 1.94384 }
+Number.prototype.mphToKnots = function() { return this * 0.868976 }
+Number.prototype.kphToKnots = function() { return this * 0.539957 }
 Number.prototype.inHgTohPa = function() { return this * 33.86389; }
 Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
