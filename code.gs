@@ -69,7 +69,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.3.0.1';
+let version = 'v2.3.1';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -352,11 +352,13 @@ function refreshFromDavis_() {
   }
   if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_speed),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0)
+    "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0),
+    "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0)
+    "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0),
+    "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
   if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
@@ -404,11 +406,13 @@ function refreshFromWeatherflow_() {
   }
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
     "mph": Number(weatherflowConditions.obs[0].wind_avg),
-    "mps": Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0)
+    "mps": Number(weatherflowConditions.obs[0].wind_avg).mphToMPS().toFixedNumber(0),
+    "knots": Number(weatherflowConditions.obs[0].wind_avg).mphToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
     "mph": Number(weatherflowConditions.obs[0].wind_gust),
-    "mps": Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0)
+    "mps": Number(weatherflowConditions.obs[0].wind_gust).mphToMPS().toFixedNumber(0),
+    "knots": Number(weatherflowConditions.obs[0].wind_gust).mphToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
@@ -460,11 +464,13 @@ function refreshFromAmbientWeather_() {
   }
   if (station.lastData.windspeedmph != null) conditions.windSpeed = {
     "mph": Number(station.lastData.windspeedmph),
-    "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(1)
+    "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(0),
+    "knots": Number(station.lastData.windspeedmph).mphToKnots().toFixedNumber(0)
   }
   if (station.lastData.windgustmph != null) conditions.windGust = {
     "mph": Number(station.lastData.windgustmph),
-    "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(1)
+    "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(0),
+    "knots": Number(station.lastData.windgustmph).mphToKnots().toFixedNumber(0)
   }
   if (station.lastData.winddir != null) conditions.winddir = station.lastData.winddir;
   if (station.lastData.baromabsin != null) conditions.pressure = {
@@ -837,8 +843,8 @@ Number.prototype.mphToMPS = function() { return this * 0.44704; }
 Number.prototype.mpsToMPH = function() { return this * 2.23694; }
 Number.prototype.kphToMPS = function() { return this * 0.27778; }
 Number.prototype.kphToMPH = function() { return this * 0.62137; }
-Number.prototype.mphToKnots = function() { return this * 0.868976 };
-Number.prototype.kphToKnots = function() { return this * 0.539957 };
+Number.prototype.mphToKnots = function() { return this * 0.868976; }
+Number.prototype.kphToKnots = function() { return this * 0.539957; }
 Number.prototype.inHgTohPa = function() { return this * 33.86389; }
 Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
