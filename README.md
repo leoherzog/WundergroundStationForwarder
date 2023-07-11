@@ -72,7 +72,7 @@ and periodically sends it on to
       - Set your `ambientWeatherApiKey` on Line 28
     </details>
 
-  - and choose one or more your forwarding destinations:
+  - and choose one or more forwarding destinations:
 
     <details>
       <summary>Wunderground</summary>
