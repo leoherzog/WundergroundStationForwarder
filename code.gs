@@ -415,9 +415,9 @@ function refreshFromWeatherflow_() {
     "knots": Number(weatherflowConditions.obs[0].wind_gust).mphToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
-  if (weatherflowConditions.obs[0].barometric_pressure != null) conditions.pressure = {
-    "inHg": Number(weatherflowConditions.obs[0].barometric_pressure).hPaToinHg().toFixedNumber(1),
-    "hPa": Number(weatherflowConditions.obs[0].barometric_pressure)
+  if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
+    "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(1),
+    "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure)
   }
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = weatherflowConditions.obs[0].relative_humidity;
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
