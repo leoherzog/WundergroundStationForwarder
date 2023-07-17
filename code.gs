@@ -69,7 +69,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.3.2';
+let version = 'v2.3.3';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
