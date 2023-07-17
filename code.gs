@@ -69,7 +69,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.3.1';
+let version = 'v2.3.2';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -415,9 +415,9 @@ function refreshFromWeatherflow_() {
     "knots": Number(weatherflowConditions.obs[0].wind_gust).mphToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
-  if (weatherflowConditions.obs[0].station_pressure != null) conditions.pressure = {
-    "inHg": Number(weatherflowConditions.obs[0].station_pressure).hPaToinHg().toFixedNumber(1),
-    "hPa": Number(weatherflowConditions.obs[0].station_pressure)
+  if (weatherflowConditions.obs[0].barometric_pressure != null) conditions.pressure = {
+    "inHg": Number(weatherflowConditions.obs[0].barometric_pressure).hPaToinHg().toFixedNumber(1),
+    "hPa": Number(weatherflowConditions.obs[0].barometric_pressure)
   }
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = weatherflowConditions.obs[0].relative_humidity;
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
