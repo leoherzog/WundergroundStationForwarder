@@ -400,7 +400,7 @@ function refreshFromWeatherflow_() {
     "f": Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].air_temperature)
   }
-  if (weatherflowConditions.obs[0].wind_chill != null) conditions.temp = {
+  if (weatherflowConditions.obs[0].wind_chill != null) conditions.wind_chill = {
     "f": Number(weatherflowConditions.obs[0].wind_chill).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].wind_chill)
   }
