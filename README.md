@@ -2,7 +2,7 @@
 
 This code is built to be hosted on the free [Google Apps Script](https://developers.google.com/apps-script) platform. It takes in weather station data from:
 
-- [Wunderground](https://wunderground.com/member/api-keys),
+- [IBM Wunderground](https://wunderground.com/member/api-keys),
 - [MyAcurite](https://myacurite.com/),
 - [Davis WeatherLink](https://weatherlink.com/),
 - [WeatherFlow Tempest](https://tempestwx.com/), or
@@ -10,13 +10,13 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 
 and periodically sends it on to
 
-- [Wunderground](https://wunderground.com/pws/overview),
-- [Windy](https://stations.windy.com/),
-- [PWSWeather](https://pwsweather.com/),
+- [IBM Wunderground](https://wunderground.com/pws/overview),
+- [Windy.com](https://stations.windy.com/),
+- [Aeris PWSWeather](https://pwsweather.com/),
 - [WeatherCloud](https://weathercloud.com/),
 - [OpenWeatherMap](https://openweathermap.org/stations),
 - [WindGuru](https://www.windguru.cz/map/station/), and/or
-- [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
+- [NOAA CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
 
@@ -27,7 +27,7 @@ and periodically sends it on to
   - Choose your datasource:
 
     <details>
-      <summary>Wunderground</summary>
+      <summary>IBM Wunderground</summary>
 
       Uses the [IBM Wunderground](https://wunderground.com/member/api-keys) API.
 
@@ -43,8 +43,8 @@ and periodically sends it on to
       - Set the `datasource` to `acurite` on Line 10
       - Set your `acuriteUsername` on Line 15
       - Set your `acuritePassword` on line 16
-      - Set your `acuriteHubName` on line 17
-      - Set your `acuriteStationName` on line 18
+      - Set your `acuriteHubName` (the user-set name on the internet-connected receiver) on line 17
+      - Set your `acuriteStationName` (the user-set name of the outdoor sensor/station) on line 18
     </details>
     <details>
       <summary>Davis Weatherlink</summary>
@@ -75,7 +75,7 @@ and periodically sends it on to
   - and choose one or more forwarding destinations:
 
     <details>
-      <summary>Wunderground</summary>
+      <summary>IBM Wunderground</summary>
 
       To send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol):
 
@@ -84,7 +84,7 @@ and periodically sends it on to
       - Set your `wundergroundStationId` on line 34
     </details>
     <details>
-      <summary>Windy</summary>
+      <summary>Windy.com</summary>
 
       To send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy):
 
@@ -93,7 +93,7 @@ and periodically sends it on to
       - Set your `windyStationId` on line 38. It's likely `0`, `1`, `2`, etc.
     </details>
     <details>
-      <summary>PWSWeather</summary>
+      <summary>Aeris PWSWeather</summary>
 
       To send to [PWSWeather](https://dashboard.pwsweather.com/):
 
