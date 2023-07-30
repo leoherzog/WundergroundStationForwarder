@@ -683,12 +683,18 @@ function updateWeatherCloud_() {
   request += '&date=' + Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyyMMdd');
   request += '&time=' + Utilities.formatDate(new Date(conditions.time), 'UTC', 'HHmm');
   if (conditions.temp != null) request += '&temp=' + (conditions.temp.c * 10);
+  if (conditions.dewpoint != null) request += '&dew=' + (conditions.dewpoint.c * 10);
   if (conditions.windSpeed != null) request += '&wspd=' + (conditions.windSpeed.mps * 10).toFixedNumber(0);
+  if (conditions.windGust != null) request += '&wspdhi=' + (conditions.windGust.mps * 10).toFixedNumber(0);
   if (conditions.winddir != null) request += '&wdir=' + conditions.winddir;
+  if (conditions.windChill != null) request += '&chill=' + (conditions.windChill.c * 10);
+  if (conditions.heatIndex != null) request += '&heat=' + (conditions.heatIndex.c * 10);
   if (conditions.pressure != null) request += '&bar=' + (conditions.pressure.hPa * 10).toFixedNumber(0);
   if (conditions.humidity != null) request += '&hum=' + conditions.humidity;
   if (conditions.uv != null) request += '&uvi=' + (conditions.uv * 10);
+  if (conditions.solarRadiation != null) request += '&solarrad=' + (conditions.solarRadiation * 10).toFixedNumber(0);
   if (conditions.precipRate != null) request += '&rainrate=' + (conditions.precipRate.mm * 10).toFixedNumber(0);
+  if (conditions.precipTotal != null) request += '&rain=' + (conditions.precipTotal.mm * 10).toFixedNumber(0);
   request += '&software=appsscriptforwarder' + version;
   
   let response = UrlFetchApp.fetch(request).getContentText();
