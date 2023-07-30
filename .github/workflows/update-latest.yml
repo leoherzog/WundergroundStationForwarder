@@ -12,10 +12,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Push to latest branch
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'latest'
-          force: true
+      - name: Push to "latest" branch
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout main
+          git branch -f latest
+          git push https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY} latest --force
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
