@@ -346,6 +346,10 @@ function refreshFromDavis_() {
     "f": Number(davisConditions.sensors[0].data[0].temp_out),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
   }
+  if (davisConditions.sensors[0].data[0].wind_chill != null) conditions.wind_chill = {
+    "f": Number(davisConditions.sensors[0].data[0].wind_chill),
+    "c": Number(davisConditions.sensors[0].data[0].wind_chill).fToC().toFixedNumber(1)
+  }
   if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
     "f": Number(davisConditions.sensors[0].data[0].dew_point),
     "c": Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(1)
