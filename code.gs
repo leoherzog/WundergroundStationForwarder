@@ -954,5 +954,4 @@ Number.prototype.heatIndex = function(humidity, units) {
   + 8.5282*Math.pow(10, -4)*T*Math.pow(H, 2) - 1.99*Math.pow(10, -6)*Math.pow(T, 2)*Math.pow(H, 2);
   return units === 'F' ? heatIndexF : heatIndexF.fToC();
 }
-
 Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }

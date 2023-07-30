@@ -21,7 +21,7 @@ and periodically sends it on to
 ## Setup
 
 1. Create a new [Google Apps Script](https://script.google.com/) project and give it a name
-2. Overwrite the default `Code.gs` file with [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest/download/code.gs) from [the latest release](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest) in this repository
+2. Overwrite the default `Code.gs` file with [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/blob/latest/code.gs) from the latest release in this repository
 3. Configure the script for you:
 
   - Choose your datasource:
@@ -149,9 +149,9 @@ If you ever make changes to the API keys or enabled services, just run the **Sch
 
 ## How to Update
 
-1. Overwrite the code from [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest/download/code.gs) from [the latest release](https://github.com/leoherzog/WundergroundStationForwarder/releases/latest) in this repository to your `Code.gs` file and `💾 Save`.
-2. Make sure your API Keys and settings on lines 10 through 59 are correct.
-3. Run the "Schedule" function again with the `▷ Run` button in the toolbar.
+1. Copy the code from [`code.gs`](https://github.com/leoherzog/WundergroundStationForwarder/blob/latest/code.gs) in this release over your `Code.gs` file.
+2. Make sure your API Keys and settings at the top of the file are correct and `💾 Save`.
+3. Run the `Schedule` function again with the `▷ Run` button in the toolbar.
 
 ## License
 
