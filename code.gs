@@ -140,14 +140,24 @@ function refreshFromIBM_() {
   if (ibmConditions.imperial.windSpeed != null) conditions.windSpeed = {
     "mph": Number(ibmConditions.imperial.windSpeed),
     "mps": Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0),
+    "kph": Number(ibmConditions.imperial.windSpeed).mphToKPH().toFixedNumber(0),
     "knots": Number(ibmConditions.imperial.windSpeed).mphToKnots().toFixedNumber(0)
   }
   if (ibmConditions.imperial.windGust != null) conditions.windGust = {
     "mph": Number(ibmConditions.imperial.windGust),
     "mps": Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0),
+    "kph": Number(ibmConditions.imperial.windGust).mphToKPH().toFixedNumber(0),
     "knots": Number(ibmConditions.imperial.windGust).mphToKnots().toFixedNumber(0)
   }
   if (ibmConditions.winddir != null) conditions.winddir = ibmConditions.winddir;
+  if (ibmConditions.imperial.windChill != null) conditions.windChill = {
+    "f": Number(ibmConditions.imperial.windChill),
+    "c": Number(ibmConditions.imperial.windChill).fToC().toFixedNumber(1)
+  }
+  if (ibmConditions.imperial.heatIndex != null) conditions.heatIndex = {
+    "f": Number(ibmConditions.imperial.heatIndex),
+    "c": Number(ibmConditions.imperial.heatIndex).fToC().toFixedNumber(1)
+  }
   if (ibmConditions.imperial.pressure != null) conditions.pressure = {
     "inHg": Number(ibmConditions.imperial.pressure),
     "hPa": Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(1)
@@ -280,17 +290,27 @@ function refreshFromAcurite_() {
   let windspeed = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'WindSpeedAvg');
   if (windspeed != null) conditions.windSpeed = {
     "mph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value) : Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windspeed.chart_unit === 'km/h' ? Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0) : Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0),
+    "mps": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0),
+    "kph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windspeed.last_reading_value),
     "knots": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToKnots().toFixedNumber(0)
   }
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
     "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windgust.chart_unit === 'km/h' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0),
+    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0),
+    "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windgust.last_reading_value),
     "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(0)
   }
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
+  if (temp != null && windspeed != null) conditions.windchill = {
+    "f": conditions.temp.f.windChill(conditions.windSpeed.mph).toFixedNumber(1),
+    "c": conditions.temp.c.windChill(conditions.windSpeed.kph).toFixedNumber(1)
+  }
+  if (temp != null && humidity != null) conditions.heatindex = {
+    "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(1),
+    "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(1)
+  }
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
     "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
@@ -346,10 +366,6 @@ function refreshFromDavis_() {
     "f": Number(davisConditions.sensors[0].data[0].temp_out),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
   }
-  if (davisConditions.sensors[0].data[0].wind_chill != null) conditions.wind_chill = {
-    "f": Number(davisConditions.sensors[0].data[0].wind_chill),
-    "c": Number(davisConditions.sensors[0].data[0].wind_chill).fToC().toFixedNumber(1)
-  }
   if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
     "f": Number(davisConditions.sensors[0].data[0].dew_point),
     "c": Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(1)
@@ -357,14 +373,38 @@ function refreshFromDavis_() {
   if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_speed),
     "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0),
+    "kph": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKPH().toFixedNumber(0),
     "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min),
     "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0),
+    "kph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKPH().toFixedNumber(0),
     "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(0)
   }
   if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
+  if (davisConditions.sensors[0].data[0].wind_chill != null) {
+    conditions.windChill = {
+      "f": Number(davisConditions.sensors[0].data[0].wind_chill),
+      "c": Number(davisConditions.sensors[0].data[0].wind_chill).fToC().toFixedNumber(1)
+    }
+  } else if (conditions.temp != null && conditions.windSpeed != null) {
+    conditions.windChill = {
+      "f": conditions.temp.windChillF(conditions.windSpeed.mph),
+      "c": conditions.temp.windChillC(conditions.windSpeed.kph)
+    }
+  }
+  if (davisConditions.sensors[0].data[0].heat_index != null) {
+    conditions.heatIndex = {
+    "f": Number(davisConditions.sensors[0].data[0].heat_index),
+    "c": Number(davisConditions.sensors[0].data[0].heat_index).fToC().toFixedNumber(1)
+    }
+  } else if (conditions.temp != null && conditions.humidity != null) {
+    conditions.heatIndex = {
+      "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
+      "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
+    }
+  }
   if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
     "inHg": Number(davisConditions.sensors[0].data[0].bar),
     "hPa": Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(1)
@@ -404,10 +444,6 @@ function refreshFromWeatherflow_() {
     "f": Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].air_temperature)
   }
-  if (weatherflowConditions.obs[0].wind_chill != null) conditions.wind_chill = {
-    "f": Number(weatherflowConditions.obs[0].wind_chill).cToF().toFixedNumber(1),
-    "c": Number(weatherflowConditions.obs[0].wind_chill)
-  }
   if (weatherflowConditions.obs[0].dew_point != null) conditions.dewpoint = {
     "f": Number(weatherflowConditions.obs[0].dew_point).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].dew_point)
@@ -415,14 +451,38 @@ function refreshFromWeatherflow_() {
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
     "mph": Number(weatherflowConditions.obs[0].wind_avg).mpsToMPH().toFixedNumber(0),
     "mps": Number(weatherflowConditions.obs[0].wind_avg),
+    "kph": Number(weatherflowConditions.obs[0].wind_avg).mpsToKPH().toFixedNumber(0),
     "knots": Number(weatherflowConditions.obs[0].wind_avg).mpsToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
     "mph": Number(weatherflowConditions.obs[0].wind_gust).mpsToMPH().toFixedNumber(0),
     "mps": Number(weatherflowConditions.obs[0].wind_gust),
+    "kph": Number(weatherflowConditions.obs[0].wind_gust).mpsToKPH().toFixedNumber(0),
     "knots": Number(weatherflowConditions.obs[0].wind_gust).mpsToKnots().toFixedNumber(0)
   }
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
+  if (weatherflowConditions.obs[0].wind_chill != null) {
+    conditions.windChill = {
+    "f": Number(weatherflowConditions.obs[0].wind_chill).cToF().toFixedNumber(1),
+    "c": Number(weatherflowConditions.obs[0].wind_chill)
+    }
+  } else if (conditions.temp != null && conditions.windSpeed != null) {
+    conditions.windChill = {
+      "f": conditions.temp.windChillF(conditions.windSpeed, 'F'),
+      "c": conditions.temp.windChillC(conditions.windSpeed, 'C')
+    }
+  }
+  if (weatherflowConditions.obs[0].heat_index != null) {
+    conditions.heatIndex = {
+    "f": Number(weatherflowConditions.obs[0].heat_index).cToF().toFixedNumber(1),
+    "c": Number(weatherflowConditions.obs[0].heat_index)
+    }
+  } else if (conditions.temp != null && conditions.humidity != null) {
+    conditions.heatIndex = {
+      "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
+      "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
+    }
+  }
   if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
     "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(1),
     "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure)
@@ -473,14 +533,24 @@ function refreshFromAmbientWeather_() {
   if (station.lastData.windspeedmph != null) conditions.windSpeed = {
     "mph": Number(station.lastData.windspeedmph),
     "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(0),
+    "kph": Number(station.lastData.windspeedmph).mphToKPH().toFixedNumber(0),
     "knots": Number(station.lastData.windspeedmph).mphToKnots().toFixedNumber(0)
   }
   if (station.lastData.windgustmph != null) conditions.windGust = {
     "mph": Number(station.lastData.windgustmph),
     "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(0),
+    "kph": Number(station.lastData.windgustmph).mphToKPH().toFixedNumber(0),
     "knots": Number(station.lastData.windgustmph).mphToKnots().toFixedNumber(0)
   }
   if (station.lastData.winddir != null) conditions.winddir = station.lastData.winddir;
+  if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
+    "f": conditions.temp.windChillF(conditions.windSpeed.mph),
+    "c": conditions.temp.windChillC(conditions.windSpeed.kph)
+  }
+  if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
+    "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
+    "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
+  }
   if (station.lastData.baromabsin != null) conditions.pressure = {
     "inHg": Number(station.lastData.baromabsin),
     "hPa": Number(station.lastData.baromabsin).inHgTohPa().toFixedNumber(1)
@@ -848,7 +918,9 @@ function compareSemver_(a, b) {
 Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
 Number.prototype.cToF = function() { return (9 / 5) * this + 32; }
 Number.prototype.mphToMPS = function() { return this * 0.44704; }
+Number.prototype.mphToKPH = function() { return this * 1.609344; }
 Number.prototype.mpsToMPH = function() { return this * 2.23694; }
+Number.prototype.mpsToKPH = function() { return this * 3.6; }
 Number.prototype.kphToMPS = function() { return this * 0.27778; }
 Number.prototype.kphToMPH = function() { return this * 0.62137; }
 Number.prototype.mphToKnots = function() { return this * 0.868976; }
@@ -858,4 +930,23 @@ Number.prototype.inHgTohPa = function() { return this * 33.86389; }
 Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
 Number.prototype.mmToIn = function() { return this * 0.03937; }
+// https://www.weather.gov/media/epz/wxcalc/windChill.pdf
+Number.prototype.windChillF = function(windSpeedMPH) {
+  if (this > 50 || windSpeedMPH < 3) return this;
+  return 35.74 + 0.6215 * this - 35.75 * Math.pow(windSpeedMPH, 0.16) + 0.4275 * this * Math.pow(windSpeedMPH, 0.16);
+}
+Number.prototype.windChillC = function(windSpeedKPH) {
+  if (this > 10 || windSpeedKPH < 4.8) return this;
+  return 13.12 + 0.6215 * this - 11.37 * Math.pow(windSpeedKPH, 0.16) + 0.3965 * this * Math.pow(windSpeedKPH, 0.16);
+}
+// https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
+Number.prototype.heatIndex = function(humidity, units) {
+  let T = units === F ? this : this.fToC();
+  let H = humidity;
+  let heatIndexF = -42.379 + 2.04901523*T + 10.14333127*H - 0.22475541*T*H - 6.83783*Math.pow(10, -3)*Math.pow(T, 2) 
+  - 5.481717*Math.pow(10, -2)*Math.pow(H, 2) + 1.22874*Math.pow(10, -3)*Math.pow(T, 2)*H 
+  + 8.5282*Math.pow(10, -4)*T*Math.pow(H, 2) - 1.99*Math.pow(10, -6)*Math.pow(T, 2)*Math.pow(H, 2);
+  return units === 'F' ? heatIndexF : heatIndexF.fToC();
+}
+
 Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }
