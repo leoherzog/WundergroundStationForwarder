@@ -1,0 +1,21 @@
+name: Update the "latest" branch
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-latest-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Push to latest branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: 'latest'
+          force: true
