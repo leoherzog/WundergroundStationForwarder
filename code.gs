@@ -304,8 +304,8 @@ function refreshFromAcurite_() {
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
   if (temp != null && windspeed != null) conditions.windchill = {
-    "f": conditions.temp.f.windChill(conditions.windSpeed.mph).toFixedNumber(1),
-    "c": conditions.temp.c.windChill(conditions.windSpeed.kph).toFixedNumber(1)
+    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(1),
+    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(1)
   }
   if (temp != null && humidity != null) conditions.heatindex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(1),
