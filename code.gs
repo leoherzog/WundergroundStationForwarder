@@ -309,7 +309,7 @@ function refreshFromAcurite_() {
     "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
   }
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
-  if (humidity != null) conditions.humidity = humidity.last_reading_value;
+  if (humidity != null) conditions.humidity = Number(humidity.last_reading_value).toFixedNumber(0);
   if (temp != null && windspeed != null) conditions.windchill = {
     "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(1),
     "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(1)
@@ -387,7 +387,7 @@ function refreshFromDavis_() {
     "inHg": Number(davisConditions.sensors[0].data[0].bar),
     "hPa": Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(1)
   }
-  if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = davisConditions.sensors[0].data[0].hum_out.toFixedNumber(0);
+  if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = Number(davisConditions.sensors[0].data[0].hum_out).toFixedNumber(0);
   if (davisConditions.sensors[0].data[0].wind_chill != null) {
     conditions.windChill = {
       "f": Number(davisConditions.sensors[0].data[0].wind_chill),
@@ -465,7 +465,7 @@ function refreshFromWeatherflow_() {
     "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(1),
     "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure)
   }
-  if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = weatherflowConditions.obs[0].relative_humidity;
+  if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = Number(weatherflowConditions.obs[0].relative_humidity).toFixedNumber(0);
   if (weatherflowConditions.obs[0].wind_chill != null) {
     conditions.windChill = {
     "f": Number(weatherflowConditions.obs[0].wind_chill).cToF().toFixedNumber(1),
@@ -547,7 +547,7 @@ function refreshFromAmbientWeather_() {
     "inHg": Number(station.lastData.baromabsin),
     "hPa": Number(station.lastData.baromabsin).inHgTohPa().toFixedNumber(1)
   }
-  if (station.lastData.humidity != null) conditions.humidity = station.lastData.humidity;
+  if (station.lastData.humidity != null) conditions.humidity = Number(station.lastData.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
     "f": conditions.temp.windChillF(conditions.windSpeed.mph),
     "c": conditions.temp.windChillC(conditions.windSpeed.kph)
@@ -946,8 +946,8 @@ Number.prototype.windChillC = function(windSpeedKPH) {
   return 13.12 + 0.6215 * this - 11.37 * Math.pow(windSpeedKPH, 0.16) + 0.3965 * this * Math.pow(windSpeedKPH, 0.16);
 }
 // https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
-Number.prototype.heatIndex = function(humidity, units) {
-  let T = units === 'F' ? this : this.fToC();
+Number.prototype.heatIndex = function(humidity, units='F') {
+  let T = units === 'F' ? this : this.cToF();
   let H = humidity;
   let heatIndexF = -42.379 + 2.04901523 * T + 10.14333127 * H - 0.22475541 * T * H - 6.83783 * Math.pow(10, -3) * Math.pow(T, 2) - 5.481717 * Math.pow(10, -2) * Math.pow(H, 2) + 1.22874 * Math.pow(10, -3) * Math.pow(T, 2) * H   + 8.5282 * Math.pow(10, -4) * T * Math.pow(H, 2) - 1.99 * Math.pow(10, -6) * Math.pow(T, 2) * Math.pow(H, 2);
   return units === 'F' ? heatIndexF : heatIndexF.fToC();
