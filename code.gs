@@ -308,7 +308,7 @@ function refreshFromAcurite_() {
     "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
     "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
   }
-  let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'humidity');
+  let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
   if (humidity != null) conditions.humidity = humidity.last_reading_value;
   if (temp != null && windspeed != null) conditions.windchill = {
     "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(1),
@@ -947,11 +947,9 @@ Number.prototype.windChillC = function(windSpeedKPH) {
 }
 // https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
 Number.prototype.heatIndex = function(humidity, units) {
-  let T = units === F ? this : this.fToC();
+  let T = units === 'F' ? this : this.fToC();
   let H = humidity;
-  let heatIndexF = -42.379 + 2.04901523*T + 10.14333127*H - 0.22475541*T*H - 6.83783*Math.pow(10, -3)*Math.pow(T, 2) 
-  - 5.481717*Math.pow(10, -2)*Math.pow(H, 2) + 1.22874*Math.pow(10, -3)*Math.pow(T, 2)*H 
-  + 8.5282*Math.pow(10, -4)*T*Math.pow(H, 2) - 1.99*Math.pow(10, -6)*Math.pow(T, 2)*Math.pow(H, 2);
+  let heatIndexF = -42.379 + 2.04901523 * T + 10.14333127 * H - 0.22475541 * T * H - 6.83783 * Math.pow(10, -3) * Math.pow(T, 2) - 5.481717 * Math.pow(10, -2) * Math.pow(H, 2) + 1.22874 * Math.pow(10, -3) * Math.pow(T, 2) * H   + 8.5282 * Math.pow(10, -4) * T * Math.pow(H, 2) - 1.99 * Math.pow(10, -6) * Math.pow(T, 2) * Math.pow(H, 2);
   return units === 'F' ? heatIndexF : heatIndexF.fToC();
 }
 Number.prototype.toFixedNumber = function(digits) { return +this.toFixed(digits); }
