@@ -132,47 +132,47 @@ function refreshFromIBM_() {
   if (ibmConditions.imperial.temp != null) conditions.temp = {
     "f": Number(ibmConditions.imperial.temp),
     "c": Number(ibmConditions.imperial.temp).fToC().toFixedNumber(1)
-  }
+  };
   if (ibmConditions.imperial.dewpt != null) conditions.dewpoint = {
     "f": Number(ibmConditions.imperial.dewpt),
     "c": Number(ibmConditions.imperial.dewpt).fToC().toFixedNumber(1)
-  }
+  };
   if (ibmConditions.imperial.windSpeed != null) conditions.windSpeed = {
     "mph": Number(ibmConditions.imperial.windSpeed),
     "mps": Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0),
     "kph": Number(ibmConditions.imperial.windSpeed).mphToKPH().toFixedNumber(0),
     "knots": Number(ibmConditions.imperial.windSpeed).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (ibmConditions.imperial.windGust != null) conditions.windGust = {
     "mph": Number(ibmConditions.imperial.windGust),
     "mps": Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0),
     "kph": Number(ibmConditions.imperial.windGust).mphToKPH().toFixedNumber(0),
     "knots": Number(ibmConditions.imperial.windGust).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (ibmConditions.winddir != null) conditions.winddir = ibmConditions.winddir;
   if (ibmConditions.imperial.windChill != null) conditions.windChill = {
     "f": Number(ibmConditions.imperial.windChill),
     "c": Number(ibmConditions.imperial.windChill).fToC().toFixedNumber(1)
-  }
+  };
   if (ibmConditions.imperial.heatIndex != null) conditions.heatIndex = {
     "f": Number(ibmConditions.imperial.heatIndex),
     "c": Number(ibmConditions.imperial.heatIndex).fToC().toFixedNumber(1)
-  }
+  };
   if (ibmConditions.imperial.pressure != null) conditions.pressure = {
     "inHg": Number(ibmConditions.imperial.pressure),
     "hPa": Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(1)
-  }
+  };
   if (ibmConditions.humidity != null) conditions.humidity = Number(ibmConditions.humidity).toFixedNumber(0);
   if (ibmConditions.uv != null) conditions.uv = ibmConditions.uv;
   if (ibmConditions.solarRadiation != null) conditions.solarRadiation = ibmConditions.solarRadiation;
   if (ibmConditions.imperial.precipRate != null) conditions.precipRate = {
     "in": Number(ibmConditions.imperial.precipRate),
     "mm": Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(2)
-  }
+  };
   if (ibmConditions.imperial.precipTotal != null) conditions.precipSinceMidnight = {
     "in": Number(ibmConditions.imperial.precipTotal),
     "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
-  }
+  };
   
   console.log(JSON.stringify(conditions));
   
@@ -196,7 +196,7 @@ function refreshFromAcurite_() {
     "Accept": "application/json",
     "Referer": "https://www.myacurite.com/",
     "DNT": "1"
-  }
+  };
 
   if (!token) { // get a new one every 6 hours when the cache expires
 
@@ -204,7 +204,7 @@ function refreshFromAcurite_() {
       "remember": true,
       "email": acuriteUsername,
       "password": acuritePassword
-    }
+    };
 
     token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
       "headers": headers,
@@ -238,7 +238,7 @@ function refreshFromAcurite_() {
       "remember": true,
       "email": acuriteUsername,
       "password": acuritePassword
-    }
+    };
 
     let token = UrlFetchApp.fetch('https://marapi.myacurite.com/users/login', {
       "headers": headers,
@@ -281,43 +281,43 @@ function refreshFromAcurite_() {
   if (temp != null) conditions.temp = {
     "f": temp.chart_unit === 'F' ? Number(temp.last_reading_value).toFixedNumber(1) : Number(temp.last_reading_value).cToF().toFixedNumber(1),
     "c": temp.chart_unit === 'C' ? Number(temp.last_reading_value).toFixedNumber(1) : Number(temp.last_reading_value).fToC().toFixedNumber(1)
-  }
+  };
   let dewpoint = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Dew Point');
   if (dewpoint != null) conditions.dewpoint = {
     "f": dewpoint.chart_unit === 'F' ? Number(dewpoint.last_reading_value).toFixedNumber(1) : Number(dewpoint.last_reading_value).cToF().toFixedNumber(1),
     "c": dewpoint.chart_unit === 'C' ? Number(dewpoint.last_reading_value).toFixedNumber(1) : Number(dewpoint.last_reading_value).fToC().toFixedNumber(1)
-  }
+  };
   let windspeed = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'WindSpeedAvg');
   if (windspeed != null) conditions.windSpeed = {
     "mph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value) : Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
     "mps": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0),
     "kph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windspeed.last_reading_value),
     "knots": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToKnots().toFixedNumber(0)
-  }
+  };
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
     "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
     "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0),
     "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windgust.last_reading_value),
     "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(0)
-  }
+  };
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
     "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
     "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
-  }
+  };
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
   if (humidity != null) conditions.humidity = Number(humidity.last_reading_value).toFixedNumber(0);
   if (temp != null && windspeed != null) conditions.windchill = {
     "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(1),
     "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(1)
-  }
+  };
   if (temp != null && humidity != null) conditions.heatindex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(1),
     "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(1)
-  }
+  };
   let uv = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'UV'); // TODO: Unable to test, may be wrong sensor code
   if (uv != null) conditions.uv = uv.last_reading_value;
   let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Light Intensity'); // TODO: Unable to test, may be wrong sensor code
@@ -326,7 +326,7 @@ function refreshFromAcurite_() {
   if (rain != null) conditions.precipRate = {
     "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).mmToIn().toFixedNumber(0),
     "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).inTomm().toFixedNumber(0)
-  }
+  };
 
   console.log(JSON.stringify(conditions));
   
@@ -365,69 +365,69 @@ function refreshFromDavis_() {
   if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
     "f": Number(davisConditions.sensors[0].data[0].temp_out),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
-  }
+  };
   if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
     "f": Number(davisConditions.sensors[0].data[0].dew_point),
     "c": Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(1)
-  }
+  };
   if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_speed),
     "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0),
     "kph": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKPH().toFixedNumber(0),
     "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min),
     "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0),
     "kph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKPH().toFixedNumber(0),
     "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
   if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
     "inHg": Number(davisConditions.sensors[0].data[0].bar),
     "hPa": Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(1)
-  }
+  };
   if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = Number(davisConditions.sensors[0].data[0].hum_out).toFixedNumber(0);
   if (davisConditions.sensors[0].data[0].wind_chill != null) {
     conditions.windChill = {
       "f": Number(davisConditions.sensors[0].data[0].wind_chill),
       "c": Number(davisConditions.sensors[0].data[0].wind_chill).fToC().toFixedNumber(1)
-    }
+    };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
       "f": conditions.temp.windChillF(conditions.windSpeed.mph),
       "c": conditions.temp.windChillC(conditions.windSpeed.kph)
-    }
-  }
+    };
+  };
   if (davisConditions.sensors[0].data[0].heat_index != null) {
     conditions.heatIndex = {
     "f": Number(davisConditions.sensors[0].data[0].heat_index),
     "c": Number(davisConditions.sensors[0].data[0].heat_index).fToC().toFixedNumber(1)
-    }
+    };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
       "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
       "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
-    }
-  }
+    };
+  };
   if (davisConditions.sensors[0].data[0].uv != null) conditions.uv = davisConditions.sensors[0].data[0].uv;
   if (davisConditions.sensors[0].data[0].solar_rad != null) conditions.solarRadiation = davisConditions.sensors[0].data[0].solar_rad;
   if (davisConditions.sensors[0].data[0].rain_storm_in != null) conditions.precipRate = {
     "in": Number(davisConditions.sensors[0].data[0].rain_storm_in),
     "mm": Number(davisConditions.sensors[0].data[0].rain_storm_mm)
-  }
+  };
   if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipSinceMidnight = {
     "in": Number(davisConditions.sensors[0].data[0].rainfall_daily_in),
     "mm": Number(davisConditions.sensors[0].data[0].rainfall_daily_mm)
-  }
+  };
   if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLast24Hours = {
     "in": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_in),
     "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_mm)
-  }
+  };
   if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLastHour = {
     "in": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_in),
     "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_mm)
-  }
+  };
   
   console.log(JSON.stringify(conditions));
   
@@ -451,65 +451,65 @@ function refreshFromWeatherflow_() {
   if (weatherflowConditions.obs[0].air_temperature != null) conditions.temp = {
     "f": Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].air_temperature)
-  }
+  };
   if (weatherflowConditions.obs[0].dew_point != null) conditions.dewpoint = {
     "f": Number(weatherflowConditions.obs[0].dew_point).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].dew_point)
-  }
+  };
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
     "mph": Number(weatherflowConditions.obs[0].wind_avg).mpsToMPH().toFixedNumber(0),
     "mps": Number(weatherflowConditions.obs[0].wind_avg),
     "kph": Number(weatherflowConditions.obs[0].wind_avg).mpsToKPH().toFixedNumber(0),
     "knots": Number(weatherflowConditions.obs[0].wind_avg).mpsToKnots().toFixedNumber(0)
-  }
+  };
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
     "mph": Number(weatherflowConditions.obs[0].wind_gust).mpsToMPH().toFixedNumber(0),
     "mps": Number(weatherflowConditions.obs[0].wind_gust),
     "kph": Number(weatherflowConditions.obs[0].wind_gust).mpsToKPH().toFixedNumber(0),
     "knots": Number(weatherflowConditions.obs[0].wind_gust).mpsToKnots().toFixedNumber(0)
-  }
+  };
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
     "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(1),
     "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure)
-  }
+  };
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = Number(weatherflowConditions.obs[0].relative_humidity).toFixedNumber(0);
   if (weatherflowConditions.obs[0].wind_chill != null) {
     conditions.windChill = {
     "f": Number(weatherflowConditions.obs[0].wind_chill).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].wind_chill)
-    }
+    };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
       "f": conditions.temp.windChillF(conditions.windSpeed, 'F'),
       "c": conditions.temp.windChillC(conditions.windSpeed, 'C')
-    }
-  }
+    };
+  };
   if (weatherflowConditions.obs[0].heat_index != null) {
     conditions.heatIndex = {
     "f": Number(weatherflowConditions.obs[0].heat_index).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].heat_index)
-    }
+    };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
       "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
       "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
-    }
-  }
+    };
+  };
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
   if (weatherflowConditions.obs[0].solar_radiation != null) conditions.solarRadiation = weatherflowConditions.obs[0].solar_radiation;
   if (weatherflowConditions.obs[0].precip != null) conditions.precipRate = {
     "in": Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
     "mm": Number(weatherflowConditions.obs[0].precip)
-  }
+  };
   if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipSinceMidnight = {
     "in": Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
     "mm": Number(weatherflowConditions.obs[0].precip_accum_local_day)
-  }
+  };
   if (weatherflowConditions.obs[0].precip_accum_last_1hr != null) conditions.precipLastHour = {
     "in": Number(weatherflowConditions.obs[0].precip_accum_last_1hr).mmToIn().toFixedNumber(2),
     "mm": Number(weatherflowConditions.obs[0].precip_accum_last_1hr)
-  }
+  };
   
   console.log(JSON.stringify(conditions));
   
@@ -537,51 +537,51 @@ function refreshFromAmbientWeather_() {
   if (station.lastData.tempf != null) conditions.temp = {
     "f": Number(station.lastData.tempf),
     "c": Number(station.lastData.tempf).fToC().toFixedNumber(1)
-  }
+  };
   if (station.lastData.dewPoint != null) conditions.dewpoint = {
     "f": Number(station.lastData.dewPoint),
     "c": Number(station.lastData.dewPoint).fToC().toFixedNumber(1)
-  }
+  };
   if (station.lastData.windspeedmph != null) conditions.windSpeed = {
     "mph": Number(station.lastData.windspeedmph),
     "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(0),
     "kph": Number(station.lastData.windspeedmph).mphToKPH().toFixedNumber(0),
     "knots": Number(station.lastData.windspeedmph).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (station.lastData.windgustmph != null) conditions.windGust = {
     "mph": Number(station.lastData.windgustmph),
     "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(0),
     "kph": Number(station.lastData.windgustmph).mphToKPH().toFixedNumber(0),
     "knots": Number(station.lastData.windgustmph).mphToKnots().toFixedNumber(0)
-  }
+  };
   if (station.lastData.winddir != null) conditions.winddir = station.lastData.winddir;
   if (station.lastData.baromabsin != null) conditions.pressure = {
     "inHg": Number(station.lastData.baromabsin),
     "hPa": Number(station.lastData.baromabsin).inHgTohPa().toFixedNumber(1)
-  }
+  };
   if (station.lastData.humidity != null) conditions.humidity = Number(station.lastData.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
     "f": conditions.temp.windChillF(conditions.windSpeed.mph),
     "c": conditions.temp.windChillC(conditions.windSpeed.kph)
-  }
+  };
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.heatIndexF(conditions.humidity, 'F'),
     "c": conditions.temp.heatIndexC(conditions.humidity, 'C')
-  }
+  };
   if (station.lastData.uv != null) conditions.uv = station.lastData.uv;
   if (station.lastData.solarradiation != null) conditions.solarRadiation = station.lastData.solarradiation;
   if (station.lastData.hourlyrainin != null) conditions.precipRate = {
     "in": Number(station.lastData.hourlyrainin),
     "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(2)
-  }
+  };
   if (station.lastData.dailyrainin != null) conditions.precipSinceMidnight = {
     "in": Number(station.lastData.dailyrainin),
     "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(2)
-  }
+  };
   if (station.lastData['24hourrainin'] != null) conditions.precipLast24Hours = {
     "in": Number(station.lastData['24hourrainin']),
     "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
-  }
+  };
   
   console.log(JSON.stringify(conditions));
   
@@ -751,7 +751,7 @@ function updateOpenWeatherMap_() {
     "contentType": "application/json",
     "type": "post",
     "payload": JSON.stringify(measurements)
-  }
+  };
   
   let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/measurements?APPID=' + openWeatherMapAPIKey, options).getContentText();
   
@@ -769,14 +769,14 @@ function createNewOWMStation_() {
     "latitude": 40.6892368,
     "longitude": -74.0444219,
     "altitude": 305
-  }
+  };
 
   let options = {
     "headers": {"Content-Type": "application/json"},
     "contentType": "application/json",
     "type": "post",
     "payload": JSON.stringify(stationDetails)
-  }
+  };
 
   let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey, options);
 
@@ -786,7 +786,7 @@ function createNewOWMStation_() {
   } else {
     console.log('Problem adding your station. Response code: ' + response.getResponseCode());
     console.log(response.getContentText());
-  }
+  };
 
 }
 
@@ -826,12 +826,12 @@ function updateCWOP_() {
 
   if (conditions.temp == null || conditions.windSpeed == null || conditions.windGust == null || conditions.winddir == null) {
     throw 'CWOP requires temp, wind direction, wind speed, and wind gust. Please ensure your station has those sensors. For more information, visit: http://wxqa.com/faq.html';
-  }
+  };
 
   if (CacheService.getScriptCache().get('lastCwopTime') === conditions.time) {
     console.error('Already sent packet for this time: ' + conditions.time);
     return;
-  }
+  };
   
   let request = 'https://send.cwop.rest/';
   request += '?id=' + cwopStationIDOrHamCallsign;
@@ -890,14 +890,14 @@ function checkGithubReleaseVersion_() {
     case 1:
       console.error('Local script version (' + version + ') is newer than current release on Github?');
       break;
-  }
+  };
 }
 
 function fetchJSON_(url, headers) {
   
   if (!headers) {
     headers = {};
-  }
+  };
   
   let json;
   try {
@@ -939,7 +939,7 @@ function compareSemver_(a, b) {
     if (isNaN(na) && !isNaN(nb)) return -1;
   }
   return 0;
-};
+}
 
 Number.prototype.fToC = function() { return (this - 32) * (5 / 9); }
 Number.prototype.cToF = function() { return (9 / 5) * this + 32; }
