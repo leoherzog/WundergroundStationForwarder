@@ -169,7 +169,7 @@ function refreshFromIBM_() {
     "in": Number(ibmConditions.imperial.precipRate),
     "mm": Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(2)
   }
-  if (ibmConditions.imperial.precipTotal != null) conditions.precipTotal = {
+  if (ibmConditions.imperial.precipTotal != null) conditions.precipSinceMidnight = {
     "in": Number(ibmConditions.imperial.precipTotal),
     "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
   }
@@ -416,9 +416,17 @@ function refreshFromDavis_() {
     "in": Number(davisConditions.sensors[0].data[0].rain_storm_in),
     "mm": Number(davisConditions.sensors[0].data[0].rain_storm_mm)
   }
-  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipTotal = {
-    "in": Number(davisConditions.sensors[0].data[0].rain_day_in),
-    "mm": Number(davisConditions.sensors[0].data[0].rain_day_mm)
+  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipSinceMidnight = {
+    "in": Number(davisConditions.sensors[0].data[0].rainfall_daily_in),
+    "mm": Number(davisConditions.sensors[0].data[0].rainfall_daily_mm)
+  }
+  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLast24Hours = {
+    "in": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_in),
+    "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_mm)
+  }
+  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLastHour = {
+    "in": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_in),
+    "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_mm)
   }
   
   console.log(JSON.stringify(conditions));
@@ -494,9 +502,13 @@ function refreshFromWeatherflow_() {
     "in": Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
     "mm": Number(weatherflowConditions.obs[0].precip)
   }
-  if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipTotal = {
+  if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipSinceMidnight = {
     "in": Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
     "mm": Number(weatherflowConditions.obs[0].precip_accum_local_day)
+  }
+  if (weatherflowConditions.obs[0].precip_accum_last_1hr != null) conditions.precipLastHour = {
+    "in": Number(weatherflowConditions.obs[0].precip_accum_last_1hr).mmToIn().toFixedNumber(2),
+    "mm": Number(weatherflowConditions.obs[0].precip_accum_last_1hr)
   }
   
   console.log(JSON.stringify(conditions));
@@ -562,7 +574,11 @@ function refreshFromAmbientWeather_() {
     "in": Number(station.lastData.hourlyrainin),
     "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(2)
   }
-  if (station.lastData['24hourrainin'] != null) conditions.precipTotal = {
+  if (station.lastData.dailyrainin != null) conditions.precipSinceMidnight = {
+    "in": Number(station.lastData.dailyrainin),
+    "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(2)
+  }
+  if (station.lastData['24hourrainin'] != null) conditions.precipLast24Hours = {
     "in": Number(station.lastData['24hourrainin']),
     "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
   }
@@ -603,7 +619,7 @@ function updateWunderground_() {
   if (conditions.uv != null) request += '&uv=' + conditions.uv;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
-  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
+  if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw&realtime=1&rtfreq=60';
 
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -629,6 +645,7 @@ function updateWindy_() {
   if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
   if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
+  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.uv != null) request += '&uv=' + conditions.uv;
   
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -660,7 +677,7 @@ function updatePWSWeather_() {
   if (conditions.uv != null) request += '&uv=' + conditions.uv;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
-  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
+  if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder&action=updateraw';
   
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -694,7 +711,7 @@ function updateWeatherCloud_() {
   if (conditions.uv != null) request += '&uvi=' + (conditions.uv * 10);
   if (conditions.solarRadiation != null) request += '&solarrad=' + (conditions.solarRadiation * 10).toFixedNumber(0);
   if (conditions.precipRate != null) request += '&rainrate=' + (conditions.precipRate.mm * 10).toFixedNumber(0);
-  if (conditions.precipTotal != null) request += '&rain=' + (conditions.precipTotal.mm * 10).toFixedNumber(0);
+  if (conditions.precipSinceMidnight != null) request += '&rain=' + (conditions.precipSinceMidnight.mm * 10).toFixedNumber(0);
   request += '&software=appsscriptforwarder' + version;
   
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -724,6 +741,8 @@ function updateOpenWeatherMap_() {
   if (conditions.winddir != null) measurements['wind_deg'] = conditions.winddir;
   if (conditions.pressure != null) measurements['pressure'] = conditions.pressure.hPa;
   if (conditions.humidity != null) measurements['humidity'] = conditions.humidity;
+  if (conditions.precipLastHour != null) measurements['rain_1h'] = conditions.precipLastHour.mm;
+  if (conditions.precipLast24Hours != null) measurements['rain_24h'] = conditions.precipLast24Hours.mm;
   
   measurements = [measurements];
   
@@ -789,7 +808,7 @@ function updateWindGuru_() {
   if (conditions.winddir != null) request += '&wind_direction=' + conditions.winddir;
   if (conditions.pressure != null) request += '&mslp=' + conditions.pressure.hPa;
   if (conditions.humidity != null) request += '&rh=' + conditions.humidity;
-  if (conditions.precipRate != null) request += '&precip=' + conditions.precipRate.mm;
+  if (conditions.precipLastHour != null) request += '&precip=' + conditions.precipLastHour.mm;
   
   let response = UrlFetchApp.fetch(request).getContentText();
   
@@ -828,7 +847,8 @@ function updateCWOP_() {
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
-  if (conditions.precipTotal != null) request += '&dailyrainin=' + conditions.precipTotal.in;
+  if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
+  if (conditions.precipLast24Hours != null) request += '&last24hrrainin=' + conditions.precipLast24Hours.in;
   request += '&software=appsscriptforwarder' + version;
 
   console.log(request);
