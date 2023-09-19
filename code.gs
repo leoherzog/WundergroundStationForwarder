@@ -305,7 +305,7 @@ function refreshFromAcurite_() {
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
-    "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(0),
+    "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(3),
     "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
   };
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
@@ -470,7 +470,7 @@ function refreshFromWeatherflow_() {
   };
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
-    "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(1),
+    "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(3),
     "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure)
   };
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = Number(weatherflowConditions.obs[0].relative_humidity).toFixedNumber(0);
