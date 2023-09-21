@@ -167,11 +167,11 @@ function refreshFromIBM_() {
   if (ibmConditions.solarRadiation != null) conditions.solarRadiation = ibmConditions.solarRadiation;
   if (ibmConditions.imperial.precipRate != null) conditions.precipRate = {
     "in": Number(ibmConditions.imperial.precipRate),
-    "mm": Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(2)
+    "mm": Number(ibmConditions.imperial.precipRate).inTomm().toFixedNumber(3)
   };
   if (ibmConditions.imperial.precipTotal != null) conditions.precipSinceMidnight = {
     "in": Number(ibmConditions.imperial.precipTotal),
-    "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
+    "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(3)
   };
   
   console.log(JSON.stringify(conditions));
@@ -324,8 +324,8 @@ function refreshFromAcurite_() {
   if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
   if (rain != null) conditions.precipRate = {
-    "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).mmToIn().toFixedNumber(0),
-    "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).inTomm().toFixedNumber(0)
+    "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
+    "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value) : Number(rain.last_reading_value).inTomm().toFixedNumber(3)
   };
 
   console.log(JSON.stringify(conditions));
@@ -499,15 +499,15 @@ function refreshFromWeatherflow_() {
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
   if (weatherflowConditions.obs[0].solar_radiation != null) conditions.solarRadiation = weatherflowConditions.obs[0].solar_radiation;
   if (weatherflowConditions.obs[0].precip != null) conditions.precipRate = {
-    "in": Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
+    "in": Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(3),
     "mm": Number(weatherflowConditions.obs[0].precip)
   };
   if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipSinceMidnight = {
-    "in": Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
+    "in": Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(3),
     "mm": Number(weatherflowConditions.obs[0].precip_accum_local_day)
   };
   if (weatherflowConditions.obs[0].precip_accum_last_1hr != null) conditions.precipLastHour = {
-    "in": Number(weatherflowConditions.obs[0].precip_accum_last_1hr).mmToIn().toFixedNumber(2),
+    "in": Number(weatherflowConditions.obs[0].precip_accum_last_1hr).mmToIn().toFixedNumber(3),
     "mm": Number(weatherflowConditions.obs[0].precip_accum_last_1hr)
   };
   
@@ -572,15 +572,15 @@ function refreshFromAmbientWeather_() {
   if (station.lastData.solarradiation != null) conditions.solarRadiation = station.lastData.solarradiation;
   if (station.lastData.hourlyrainin != null) conditions.precipRate = {
     "in": Number(station.lastData.hourlyrainin),
-    "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(2)
+    "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(3)
   };
   if (station.lastData.dailyrainin != null) conditions.precipSinceMidnight = {
     "in": Number(station.lastData.dailyrainin),
-    "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(2)
+    "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(3)
   };
   if (station.lastData['24hourrainin'] != null) conditions.precipLast24Hours = {
     "in": Number(station.lastData['24hourrainin']),
-    "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
+    "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(3)
   };
   
   console.log(JSON.stringify(conditions));
