@@ -139,15 +139,15 @@ function refreshFromIBM_() {
   };
   if (ibmConditions.imperial.windSpeed != null) conditions.windSpeed = {
     "mph": Number(ibmConditions.imperial.windSpeed),
-    "mps": Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(0),
-    "kph": Number(ibmConditions.imperial.windSpeed).mphToKPH().toFixedNumber(0),
-    "knots": Number(ibmConditions.imperial.windSpeed).mphToKnots().toFixedNumber(0)
+    "mps": Number(ibmConditions.imperial.windSpeed).mphToMPS().toFixedNumber(1),
+    "kph": Number(ibmConditions.imperial.windSpeed).mphToKPH().toFixedNumber(1),
+    "knots": Number(ibmConditions.imperial.windSpeed).mphToKnots().toFixedNumber(1)
   };
   if (ibmConditions.imperial.windGust != null) conditions.windGust = {
     "mph": Number(ibmConditions.imperial.windGust),
-    "mps": Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(0),
-    "kph": Number(ibmConditions.imperial.windGust).mphToKPH().toFixedNumber(0),
-    "knots": Number(ibmConditions.imperial.windGust).mphToKnots().toFixedNumber(0)
+    "mps": Number(ibmConditions.imperial.windGust).mphToMPS().toFixedNumber(1),
+    "kph": Number(ibmConditions.imperial.windGust).mphToKPH().toFixedNumber(1),
+    "knots": Number(ibmConditions.imperial.windGust).mphToKnots().toFixedNumber(1)
   };
   if (ibmConditions.winddir != null) conditions.winddir = ibmConditions.winddir;
   if (ibmConditions.imperial.windChill != null) conditions.windChill = {
@@ -289,17 +289,17 @@ function refreshFromAcurite_() {
   };
   let windspeed = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'WindSpeedAvg');
   if (windspeed != null) conditions.windSpeed = {
-    "mph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value) : Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(0),
-    "kph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windspeed.last_reading_value),
-    "knots": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windspeed.last_reading_value).kphToKnots().toFixedNumber(0)
+    "mph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value) : Number(windspeed.last_reading_value).kphToMPH().toFixedNumber(1),
+    "mps": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToMPS().toFixedNumber(1) : Number(windspeed.last_reading_value).kphToMPS().toFixedNumber(1),
+    "kph": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKPH().toFixedNumber(1) : Number(windspeed.last_reading_value),
+    "knots": windspeed.chart_unit === 'mph' ? Number(windspeed.last_reading_value).mphToKnots().toFixedNumber(1) : Number(windspeed.last_reading_value).kphToKnots().toFixedNumber(1)
   };
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
-    "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(0),
-    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(0),
-    "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(0) : Number(windgust.last_reading_value),
-    "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(0) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(0)
+    "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(1),
+    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(1) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(1),
+    "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(1) : Number(windgust.last_reading_value),
+    "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(1) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(1)
   };
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
@@ -372,15 +372,15 @@ function refreshFromDavis_() {
   };
   if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_speed),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(0),
-    "kph": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKPH().toFixedNumber(0),
-    "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(0)
+    "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(1),
+    "kph": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKPH().toFixedNumber(1),
+    "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(1)
   };
   if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
     "mph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(0),
-    "kph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKPH().toFixedNumber(0),
-    "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(0)
+    "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(1),
+    "kph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKPH().toFixedNumber(1),
+    "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(1)
   };
   if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
   if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
@@ -457,16 +457,16 @@ function refreshFromWeatherflow_() {
     "c": Number(weatherflowConditions.obs[0].dew_point)
   };
   if (weatherflowConditions.obs[0].wind_avg != null) conditions.windSpeed = {
-    "mph": Number(weatherflowConditions.obs[0].wind_avg).mpsToMPH().toFixedNumber(0),
+    "mph": Number(weatherflowConditions.obs[0].wind_avg).mpsToMPH().toFixedNumber(1),
     "mps": Number(weatherflowConditions.obs[0].wind_avg),
-    "kph": Number(weatherflowConditions.obs[0].wind_avg).mpsToKPH().toFixedNumber(0),
-    "knots": Number(weatherflowConditions.obs[0].wind_avg).mpsToKnots().toFixedNumber(0)
+    "kph": Number(weatherflowConditions.obs[0].wind_avg).mpsToKPH().toFixedNumber(1),
+    "knots": Number(weatherflowConditions.obs[0].wind_avg).mpsToKnots().toFixedNumber(1)
   };
   if (weatherflowConditions.obs[0].wind_gust != null) conditions.windGust = {
-    "mph": Number(weatherflowConditions.obs[0].wind_gust).mpsToMPH().toFixedNumber(0),
+    "mph": Number(weatherflowConditions.obs[0].wind_gust).mpsToMPH().toFixedNumber(1),
     "mps": Number(weatherflowConditions.obs[0].wind_gust),
-    "kph": Number(weatherflowConditions.obs[0].wind_gust).mpsToKPH().toFixedNumber(0),
-    "knots": Number(weatherflowConditions.obs[0].wind_gust).mpsToKnots().toFixedNumber(0)
+    "kph": Number(weatherflowConditions.obs[0].wind_gust).mpsToKPH().toFixedNumber(1),
+    "knots": Number(weatherflowConditions.obs[0].wind_gust).mpsToKnots().toFixedNumber(1)
   };
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
@@ -544,15 +544,15 @@ function refreshFromAmbientWeather_() {
   };
   if (station.lastData.windspeedmph != null) conditions.windSpeed = {
     "mph": Number(station.lastData.windspeedmph),
-    "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(0),
-    "kph": Number(station.lastData.windspeedmph).mphToKPH().toFixedNumber(0),
-    "knots": Number(station.lastData.windspeedmph).mphToKnots().toFixedNumber(0)
+    "mps": Number(station.lastData.windspeedmph).mphToMPS().toFixedNumber(1),
+    "kph": Number(station.lastData.windspeedmph).mphToKPH().toFixedNumber(1),
+    "knots": Number(station.lastData.windspeedmph).mphToKnots().toFixedNumber(1)
   };
   if (station.lastData.windgustmph != null) conditions.windGust = {
     "mph": Number(station.lastData.windgustmph),
-    "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(0),
-    "kph": Number(station.lastData.windgustmph).mphToKPH().toFixedNumber(0),
-    "knots": Number(station.lastData.windgustmph).mphToKnots().toFixedNumber(0)
+    "mps": Number(station.lastData.windgustmph).mphToMPS().toFixedNumber(1),
+    "kph": Number(station.lastData.windgustmph).mphToKPH().toFixedNumber(1),
+    "knots": Number(station.lastData.windgustmph).mphToKnots().toFixedNumber(1)
   };
   if (station.lastData.winddir != null) conditions.winddir = station.lastData.winddir;
   if (station.lastData.baromabsin != null) conditions.pressure = {
