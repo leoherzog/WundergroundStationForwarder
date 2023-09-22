@@ -572,16 +572,16 @@ function refreshFromAmbientWeather_() {
   if (station.lastData.uv != null) conditions.uv = station.lastData.uv;
   if (station.lastData.solarradiation != null) conditions.solarRadiation = station.lastData.solarradiation;
   if (station.lastData.hourlyrainin != null) conditions.precipRate = {
-    "in": Number(station.lastData.hourlyrainin).toFixedNumber(1),
-    "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(3)
+    "in": Number(station.lastData.hourlyrainin).toFixedNumber(2),
+    "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(1)
   };
   if (station.lastData.dailyrainin != null) conditions.precipSinceMidnight = {
-    "in": Number(station.lastData.dailyrainin).toFixedNumber(1),
-    "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(3)
+    "in": Number(station.lastData.dailyrainin).toFixedNumber(2),
+    "mm": Number(station.lastData.dailyrainin).inTomm().toFixedNumber(1)
   };
   if (station.lastData['24hourrainin'] != null) conditions.precipLast24Hours = {
-    "in": Number(station.lastData['24hourrainin']).toFixedNumber(1),
-    "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(3)
+    "in": Number(station.lastData['24hourrainin']).toFixedNumber(2),
+    "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(1)
   };
   
   console.log(JSON.stringify(conditions));
