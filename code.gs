@@ -310,11 +310,11 @@ function refreshFromAcurite_() {
   };
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
   if (humidity != null) conditions.humidity = Number(humidity.last_reading_value).toFixedNumber(0);
-  if (temp != null && windspeed != null) conditions.windchill = {
+  if (temp != null && windspeed != null) conditions.windChill = {
     "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(1),
     "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(1)
   };
-  if (temp != null && humidity != null) conditions.heatindex = {
+  if (temp != null && humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(1),
     "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(1)
   };
