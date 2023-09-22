@@ -401,8 +401,8 @@ function refreshFromDavis_() {
   };
   if (davisConditions.sensors[0].data[0].heat_index != null) {
     conditions.heatIndex = {
-    "f": Number(davisConditions.sensors[0].data[0].heat_index).toFixedNumber(1),
-    "c": Number(davisConditions.sensors[0].data[0].heat_index).fToC().toFixedNumber(1)
+      "f": Number(davisConditions.sensors[0].data[0].heat_index).toFixedNumber(1),
+      "c": Number(davisConditions.sensors[0].data[0].heat_index).fToC().toFixedNumber(1)
     };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
@@ -438,6 +438,7 @@ function refreshFromDavis_() {
 }
 
 // https://weatherflow.github.io/Tempest/api/
+// https://apidocs.tempestwx.com/reference/derived-metrics
 function refreshFromWeatherflow_() {
 
   let weatherflowConditions = fetchJSON_('https://swd.weatherflow.com/swd/rest/observations/station/' + weatherflowStationId + '?token=' + weatherflowPUT);
@@ -487,8 +488,8 @@ function refreshFromWeatherflow_() {
   };
   if (weatherflowConditions.obs[0].heat_index != null) {
     conditions.heatIndex = {
-    "f": Number(weatherflowConditions.obs[0].heat_index).cToF().toFixedNumber(1),
-    "c": Number(weatherflowConditions.obs[0].heat_index).toFixedNumber(1)
+      "f": Number(weatherflowConditions.obs[0].heat_index).cToF().toFixedNumber(1),
+      "c": Number(weatherflowConditions.obs[0].heat_index).toFixedNumber(1)
     };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
