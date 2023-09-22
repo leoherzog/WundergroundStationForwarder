@@ -127,8 +127,8 @@ function refreshFromIBM_() {
 
   let conditions = {};
   conditions.time = new Date(ibmConditions.obsTimeUtc).getTime();
-  conditions.latitude = ibmConditions.lat;
-  conditions.longitude = ibmConditions.lon;
+  conditions.latitude = ibmConditions.lat.toString();
+  conditions.longitude = ibmConditions.lon.toString();
   if (ibmConditions.imperial.temp != null) conditions.temp = {
     "f": Number(ibmConditions.imperial.temp).toFixedNumber(1),
     "c": Number(ibmConditions.imperial.temp).fToC().toFixedNumber(1)
@@ -275,8 +275,8 @@ function refreshFromAcurite_() {
 
   let conditions = {};
   conditions.time = new Date(acuriteConditions.last_check_in_at).getTime();
-  conditions.latitude = sensors.latitude;
-  conditions.longitude = sensors.longitude;
+  conditions.latitude = sensors.latitude.toString();
+  conditions.longitude = sensors.longitude.toString();
   let temp = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Temperature');
   if (temp != null) conditions.temp = {
     "f": temp.chart_unit === 'F' ? Number(temp.last_reading_value).toFixedNumber(1) : Number(temp.last_reading_value).cToF().toFixedNumber(1),
@@ -360,8 +360,8 @@ function refreshFromDavis_() {
 
   let conditions = {};
   conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
-  conditions.latitude = station.latitude;
-  conditions.longitude = station.longitude;
+  conditions.latitude = station.latitude.toString();
+  conditions.longitude = station.longitude.toString();
   if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
     "f": Number(davisConditions.sensors[0].data[0].temp_out).toFixedNumber(1),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(1)
@@ -447,8 +447,8 @@ function refreshFromWeatherflow_() {
 
   let conditions = {};
   conditions.time = weatherflowConditions.obs[0].timestamp * 1000;
-  conditions.latitude = weatherflowConditions.latitude;
-  conditions.longitude = weatherflowConditions.longitude;
+  conditions.latitude = weatherflowConditions.latitude.toString();
+  conditions.longitude = weatherflowConditions.longitude.toString();
   if (weatherflowConditions.obs[0].air_temperature != null) conditions.temp = {
     "f": Number(weatherflowConditions.obs[0].air_temperature).cToF().toFixedNumber(1),
     "c": Number(weatherflowConditions.obs[0].air_temperature).toFixedNumber(1)
@@ -533,8 +533,8 @@ function refreshFromAmbientWeather_() {
 
   let conditions = {};
   conditions.time = station.lastData.dateutc;
-  conditions.latitude = station.info.coords.coords.lat;
-  conditions.longitude = station.info.coords.coords.lon;
+  conditions.latitude = station.info.coords.coords.lat.toString();
+  conditions.longitude = station.info.coords.coords.lon.toString();
   if (station.lastData.tempf != null) conditions.temp = {
     "f": Number(station.lastData.tempf).toFixedNumber(1),
     "c": Number(station.lastData.tempf).fToC().toFixedNumber(1)
