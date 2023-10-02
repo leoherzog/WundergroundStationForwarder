@@ -500,8 +500,8 @@ function refreshFromWeatherflow_() {
   if (weatherflowConditions.obs[0].uv != null) conditions.uv = weatherflowConditions.obs[0].uv;
   if (weatherflowConditions.obs[0].solar_radiation != null) conditions.solarRadiation = weatherflowConditions.obs[0].solar_radiation;
   if (weatherflowConditions.obs[0].precip != null) conditions.precipRate = {
-    "in": Number(weatherflowConditions.obs[0].precip).mmToIn().toFixedNumber(2),
-    "mm": Number(weatherflowConditions.obs[0].precip).toFixedNumber(1)
+    "in": Number(weatherflowConditions.obs[0].precip * 60).mmToIn().toFixedNumber(2),
+    "mm": Number(weatherflowConditions.obs[0].precip * 60).toFixedNumber(1)
   };
   if (weatherflowConditions.obs[0].precip_accum_local_day != null) conditions.precipSinceMidnight = {
     "in": Number(weatherflowConditions.obs[0].precip_accum_local_day).mmToIn().toFixedNumber(2),
