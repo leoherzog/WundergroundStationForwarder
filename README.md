@@ -167,6 +167,10 @@ Feel free to take a look at the source and adapt as you please. This source is l
 Station Forwarder is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
 
 <a href="https://herzog.tech/$" target="_blank">
-  <img src="https://herzog.tech/signature/mug-tea-saucer-solid.svg.png" alt="Buy Me A Coffee" width="32px" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://herzog.tech/signature/mug-tea-saucer-solid-light.svg.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://herzog.tech/signature/mug-tea-saucer-solid.svg.png">
+    <img src="https://herzog.tech/signature/mug-tea-saucer-solid.svg.png" alt="Buy Me A Tea" width="32px">
+  </picture>
   Found this helpful? Buy me a tea!
 </a>
