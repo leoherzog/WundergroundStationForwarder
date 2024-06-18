@@ -101,6 +101,8 @@ function Schedule() {
       refreshFromAPRSFI_();
       ScriptApp.newTrigger('refreshFromAPRSFI_').timeBased().everyMinutes(1).create();
       break;
+    default:
+      throw 'Invalid datasource';
   }
   if (updateWunderground) ScriptApp.newTrigger('updateWunderground_').timeBased().everyMinutes(1).create();
   if (updateWindy) ScriptApp.newTrigger('updateWindy_').timeBased().everyMinutes(5).create();
