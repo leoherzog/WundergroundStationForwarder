@@ -6,8 +6,9 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 - [MyAcurite](https://myacurite.com/),
 - [Davis WeatherLink](https://weatherlink.com/),
 - [WeatherFlow Tempest](https://tempestwx.com/),
-- [Ambient Weather](https://ambientweather.net/), or
-- [aprs.fi (CWOP)](https://aprs.fi/).
+- [Ambient Weather](https://ambientweather.net/),
+- [aprs.fi (CWOP)](https://aprs.fi/), or
+- a custom data source in [RTL_433 JSON format](https://www.triq.org/rtl_433/DATA_FORMAT.html),
 
 and periodically sends it on to
 
