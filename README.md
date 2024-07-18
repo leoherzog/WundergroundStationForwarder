@@ -86,6 +86,16 @@ and periodically sends it on to
   - Set your `aprsStationID` on line 30
   - Set your `aprsApiKey` on Line 31 from [your aprs.fi account](https://aprs.fi/account/)
   </details>
+  <details>
+    <summary>Custom Data Source</summary>
+
+  Send weather station readings from any system in [RTL_433 JSON format](https://www.triq.org/rtl_433/DATA_FORMAT.html).
+
+  - Set the `datasource` to `custom` on Line 10
+  - Set your station's latitude and longitude on lines 33 and 34 in decimal degrees
+  - Click `Deploy ▼` → New deployment → '⚙' → Web app, and change 'Who has access' to 'Anyone' and press 'Deploy'
+  - Begin HTTP POSTing JSON data to the `https://script.google.com/macros/...` URL provided in the confirmation dialog
+  </details>
 
 - and choose one or more forwarding destinations:
 
@@ -94,27 +104,27 @@ and periodically sends it on to
 
   To send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol):
 
-  - Set `updateWunderground` to `true` on Line 35
-  - Set your `wundergroundAPIKey` on Line 36
-  - Set your `wundergroundStationId` on line 37
+  - Set `updateWunderground` to `true` on Line 38
+  - Set your `wundergroundAPIKey` on Line 39
+  - Set your `wundergroundStationId` on line 40
   </details>
   <details>
     <summary>Windy.com</summary>
 
   To send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy):
 
-  - Set `updateWindy` to `true` on Line 39
-  - Set your `windyAPIKey` on Line 40
-  - Set your `windyStationId` on line 41. It's likely `0`, `1`, `2`, etc.
+  - Set `updateWindy` to `true` on Line 42
+  - Set your `windyAPIKey` on Line 43
+  - Set your `windyStationId` on line 44. It's likely `0`, `1`, `2`, etc.
   </details>
   <details>
     <summary>Aeris PWSWeather</summary>
 
   To send to [PWSWeather](https://dashboard.pwsweather.com/):
 
-  - Set `updatePWSWeather` to `true` on Line 43
-  - Set your `pwsWeatherAPIKey` from your station's profile page on line 44
-  - Set your `pwsWeatherStationID` on Line 45
+  - Set `updatePWSWeather` to `true` on Line 46
+  - Set your `pwsWeatherAPIKey` from your station's profile page on line 47
+  - Set your `pwsWeatherStationID` on Line 48
   </details>
   <details>
     <summary>WeatherCloud</summary>
@@ -123,19 +133,19 @@ and periodically sends it on to
 
   Retrieve your station's ID and API Key by going to [your Devices](https://app.weathercloud.net/devices), then clicking Settings → 🔌 Link on your station.
 
-  - Set `updateWeatherCloud` to `true` on Line 47
-  - Set your `weathercloudAPIKey` on Line 48
-  - Set your `weathercloudID` on Line 49
-  - Set whether or not you have a WeatherCloud Pro or Premium account with `hasWeatherCloudPro` as `true` or `false` on line 50
+  - Set `updateWeatherCloud` to `true` on Line 50
+  - Set your `weathercloudAPIKey` on Line 51
+  - Set your `weathercloudID` on Line 52
+  - Set whether or not you have a WeatherCloud Pro or Premium account with `hasWeatherCloudPro` as `true` or `false` on line 53
   </details>
   <details>
     <summary>OpenWeatherMap</summary>
 
   Creation of a new OpenWeatherMap station must be done by API, not on the OpenWeatherMap website. More information is available in [the OpenWeatherMap Station API documentation](https://openweathermap.org/stations#create_station). The basic concept for what must be done is available in the `createNewOWMStation_()` function. Remove the `_` character from the name of that function to make it selectable from the `▷ Run` button in the toolbar. If you do so, make sure you note your new station's ID and other details in the log (available in the Executions tab in the sidebar after running!), then:
 
-  - Set `updateOpenWeatherMap` to `true` on Line 52
-  - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 53
-  - Set your `openWeatherMapStationId` to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station) on line 54
+  - Set `updateOpenWeatherMap` to `true` on Line 55
+  - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 56
+  - Set your `openWeatherMapStationId` to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station) on line 57
   </details>
   <details>
     <summary>WindGuru</summary>
@@ -144,18 +154,18 @@ and periodically sends it on to
 
   Start by [registering a new "Other / Upload API" station](https://stations.windguru.cz/register.php?id_type=16), then:
 
-  - Set `updateWindGuru` to `true` on Line 56
-  - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 57
-  - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 58
+  - Set `updateWindGuru` to `true` on Line 59
+  - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 60
+  - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 61
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
 
   Send to [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml). Start by [registering for a new station](https://madis.ncep.noaa.gov/madis_cwop.shtml), then when you receive your email:
 
-  - Set `updateCWOP` to `true` on Line 60
-  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 61
-  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 62
+  - Set `updateCWOP` to `true` on Line 63
+  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 64
+  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 65
   </details>
 
 4. Run the "Schedule" function with the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.

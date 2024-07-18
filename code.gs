@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), or 'aprs' (aprs.fi)
+const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'aprs' (aprs.fi), or 'custom' (custom webhook in rtl_433 format)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationId = 'KXXXXXXXXXX';
@@ -29,6 +29,9 @@ const ambientWeatherApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 // or
 const aprsStationID = 'xxxxxx';
 const aprsApiKey = 'xxxxxx.xxxxxxxxxxxxxxxx';
+// or
+const customStationLat = 'xx.xxxxxx';
+const customStationLon = 'xx.xxxxxx';
 
 // Sending data
 
@@ -72,7 +75,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.6.0';
+let version = 'v2.7.0';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -101,6 +104,8 @@ function Schedule() {
       refreshFromAPRSFI_();
       ScriptApp.newTrigger('refreshFromAPRSFI_').timeBased().everyMinutes(1).create();
       break;
+    case 'custom':
+      console.warn('You have chosen a custom datasource! Please publish this Apps Script project as a web app');
     default:
       throw 'Invalid datasource';
   }
@@ -664,6 +669,101 @@ function refreshFromAPRSFI() {
   if (aprsConditions.rain_24h != null) conditions.precipLast24Hours = {
     "in": Number(aprsConditions.rain_24h).mmToIn().toFixedNumber(3),
     "mm": Number(aprsConditions.rain_24h).toFixedNumber(2)
+  };
+  
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+// https://www.triq.org/rtl_433/DATA_FORMAT.html
+// https://developers.google.com/apps-script/guides/web#request_parameters
+function doPost(request) {
+
+  let receivedJSON;
+  try {
+    receivedJSON = JSON.parse(request?.postData?.contents);
+  }
+  catch(e) {
+    console.error('Problem with the received payload: ' + e.message + '\n\n' + request?.postData?.contents);
+  }
+  if (!receivedJSON) return false;
+  console.log(JSON.stringify(receivedJSON));
+
+  let conditions = {};
+  conditions.time = new Date(receivedJSON.time).getTime();
+  conditions.latitude = customStationLat.toString();
+  conditions.longitude = customStationLong.toString();
+  if (receivedJSON.temperature_F != null) conditions.temp = {
+    "f": Number(receivedJSON.temperature_F).toFixedNumber(2),
+    "c": Number(receivedJSON.temperature_F).fToC().toFixedNumber(2)
+  };
+  if (receivedJSON.temperature_C != null) conditions.temp = {
+    "f": Number(receivedJSON.temperature_C).cToF().toFixedNumber(2),
+    "c": Number(receivedJSON.temperature_C).toFixedNumber(2)
+  };
+  if (receivedJSON.wind_avg_m_s != null) conditions.windSpeed = {
+    "mph": Number(receivedJSON.wind_avg_m_s).mpsToMPH().toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_avg_m_s).toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_avg_m_s).mpsToKPH().toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_avg_m_s).mpsToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_avg_km_h != null) conditions.windSpeed = {
+    "mph": Number(receivedJSON.wind_avg_km_h).kphToMPH().toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_avg_km_h).kphToMPS().toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_avg_km_h).toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_avg_km_h).kphToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_avg_mi_h != null) conditions.windSpeed = {
+    "mph": Number(receivedJSON.wind_avg_mi_h).toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_avg_mi_h).mphToMPS().toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_avg_mi_h).mphToKPH.toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_avg_mi_h).mphToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_max_m_s != null) conditions.windGust = {
+    "mph": Number(receivedJSON.wind_max_m_s).mpsToMPH().toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_max_m_s).toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_max_m_s).mpsToKPH().toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_max_m_s).mpsToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_max_km_h != null) conditions.windGust = {
+    "mph": Number(receivedJSON.wind_max_km_h).kphToMPH().toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_max_km_h).kphToMPS().toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_max_km_h).toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_max_km_h).kphToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_max_mi_h != null) conditions.windGust = {
+    "mph": Number(receivedJSON.wind_max_mi_h).toFixedNumber(2),
+    "mps": Number(receivedJSON.wind_max_mi_h).mphToMPS().toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_max_mi_h).mphToKPH.toFixedNumber(2),
+    "knots": Number(receivedJSON.wind_max_mi_h).mphToKnots().toFixedNumber(2)
+  };
+  if (receivedJSON.wind_dir_deg != null) conditions.winddir = receivedJSON.wind_dir_deg;
+  if (receivedJSON.pressure_hPa != null) conditions.pressure = {
+    "inHg": Number(receivedJSON.pressure_hPa).hPaToinHg().toFixedNumber(3),
+    "hPa": Number(receivedJSON.pressure_hPa).toFixedNumber(0)
+  };
+  if (receivedJSON.pressure_psi != null) conditions.pressure = {
+    "inHg": Number(receivedJSON.pressure_psi).hPaToinHg().toFixedNumber(3),
+    "hPa": Number(receivedJSON.pressure_psi).toFixedNumber(0)
+  };
+  if (receivedJSON.humidity != null) conditions.humidity = Number(receivedJSON.humidity).toFixedNumber(0);
+  if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
+    "f": conditions.temp.f.windChillF(conditions.windSpeed).toFixedNumber(2),
+    "c": conditions.temp.c.windChillC(conditions.windSpeed).toFixedNumber(2)
+  }
+  if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
+    "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
+    "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
+  };
+  if (receivedJSON.uv != null) conditions.uv = receivedJSON.uv;
+  if (receivedJSON.light_lux != null) conditions.solarRadiation = receivedJSON.light_lux;
+  if (receivedJSON.rain_rate_mm_h != null) conditions.precipRate = {
+    "in": Number(receivedJSON.rain_rate_mm_h).mmToIn().toFixedNumber(3),
+    "mm": Number(receivedJSON.rain_rate_mm_h).toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
