@@ -169,7 +169,7 @@ and periodically sends it on to
   - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 65
   </details>
 
-4. Run the "Schedule" function with the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.
+4. Run the "Schedule" function (not the "doPost" function) by selecting "Schedule" in the dropdown and pressing the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.
 
 If you ever make changes to the API keys or enabled services, just run the **Schedule** function again.
 
