@@ -1046,6 +1046,38 @@ function updateCWOP_() {
   
 }
 
+function getCalculatedHourlyPrecipRate_(currentPrecipRate) {
+  
+  let precipHistory = JSON.parse(CacheService.getScriptCache().get('calculatedHourlyPrecipRate') || '[]');
+
+  let now = new Date();
+  
+  // add the new reading with a timestamp
+  precipHistory.push({
+    "rate": currentPrecipRate,
+    "timestamp": now.getTime()
+  });
+  
+  // remove entries older than 1 hour
+  const oneHourAgo = now.getTime() - 3600000;
+  precipHistory = precipHistory.filter(entry => entry.timestamp >= oneHourAgo);
+
+  console.log(JSON.stringify(precipHistory));
+  
+  CacheService.getScriptCache().put('calculatedHourlyPrecipRate', JSON.stringify(precipHistory), 21600); // 6 hours
+  
+  // calculate the average if we have data spanning close to an hour
+  if (precipHistory.length > 1 && 
+      (precipHistory[precipHistory.length - 1].timestamp - precipHistory[0].timestamp) >= 3600000 * 0.9) { // are there two or more readings spanning almost an hour?
+    const sum = precipHistory.reduce((acc, entry) => acc + entry.rate, 0);
+    const average = sum / precipHistory.length;
+    return average;
+  } else {
+    return null; // not enough data spanning an hour yet
+  }
+  
+}
+
 // https://gist.github.com/rcknr/ad7d4623b0a2d90415323f96e634cdee
 function md5_(input) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, input)
