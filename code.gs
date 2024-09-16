@@ -75,7 +75,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.7.0';
+let version = 'v2.7.1';
 
 function Schedule() {
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
@@ -188,10 +188,10 @@ function refreshFromIBM_() {
     "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
   };
 
-  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
@@ -348,10 +348,10 @@ function refreshFromAcurite_() {
     "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
   };
   
-  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
 
   console.log(JSON.stringify(conditions));
@@ -610,10 +610,10 @@ function refreshFromAmbientWeather_() {
     "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
   };
   
-  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
@@ -689,10 +689,10 @@ function refreshFromAPRSFI() {
     "mm": Number(aprsConditions.rain_24h).toFixedNumber(2)
   };
   
-  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
@@ -1070,19 +1070,19 @@ function updateCWOP_() {
   
 }
 
-function getCalculatedHourlyPrecipRate_(currentPrecipRate) {
+function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
 
   const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
   
-  let precipHistory = JSON.parse(CacheService.getScriptCache().get('calculatedHourlyPrecipRate') || '[]');
+  let precipHistory = JSON.parse(CacheService.getScriptCache().get('calculatedHourlyPrecipAccum') || '[]');
   const currentTime = new Date().getTime();
   
   // add the new reading and remove old entries
-  precipHistory.push({ rate: currentPrecipRate, timestamp: currentTime });
+  precipHistory.push({ "rate": currentPrecipRate, "timestamp": currentTime });
   precipHistory = precipHistory.filter(entry => entry.timestamp >= currentTime - ONE_HOUR_MS);
   
   // save the updated history back to cache
-  CacheService.getScriptCache().put('calculatedHourlyPrecipRate', JSON.stringify(precipHistory), 21600); // 6 hours cache
+  CacheService.getScriptCache().put('calculatedHourlyPrecipAccum', JSON.stringify(precipHistory), 21600); // 6 hours cache
   
   // calculate the accumulation if we have sufficient data
   if (precipHistory.length > 1 && currentTime - precipHistory[0].timestamp >= ONE_HOUR_MS * 0.95) { // are there two or more readings spanning almost an hour?
