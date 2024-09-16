@@ -17,7 +17,8 @@ and periodically sends it on to
 - [Aeris PWSWeather](https://pwsweather.com/),
 - [WeatherCloud](https://weathercloud.com/),
 - [OpenWeatherMap](https://openweathermap.org/stations),
-- [WindGuru](https://www.windguru.cz/map/station/), and/or
+- [WindGuru](https://www.windguru.cz/map/station/),
+- [MET (UK) WOW](https://wow.metoffice.gov.uk/) and/or
 - [NOAA CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
@@ -37,7 +38,7 @@ and periodically sends it on to
 
   - Set the `datasource` to `ibm` on line 10
   - Set your `ibmAPIKey` on line 12
-  - Set your `ibmStationId` on line 13
+  - Set your `ibmStationID` on line 13
   </details>
   <details>
     <summary>MyAcurite</summary>
@@ -67,7 +68,7 @@ and periodically sends it on to
 
   - Set the `datasource` to `weatherflow` on Line 10
   - Set your `weatherflowPUT` on line 24
-  - Set your `weatherflowSationId` on Line 25
+  - Set your `weatherflowSationID` on Line 25
   </details>
   <details>
     <summary>Ambient Weather</summary>
@@ -107,7 +108,7 @@ and periodically sends it on to
 
   - Set `updateWunderground` to `true` on Line 38
   - Set your `wundergroundAPIKey` on Line 39
-  - Set your `wundergroundStationId` on line 40
+  - Set your `wundergroundStationID` on line 40
   </details>
   <details>
     <summary>Windy.com</summary>
@@ -116,7 +117,7 @@ and periodically sends it on to
 
   - Set `updateWindy` to `true` on Line 42
   - Set your `windyAPIKey` on Line 43
-  - Set your `windyStationId` on line 44. It's likely `0`, `1`, `2`, etc.
+  - Set your `windyStationID` on line 44. It's likely `0`, `1`, `2`, etc.
   </details>
   <details>
     <summary>Aeris PWSWeather</summary>
@@ -160,13 +161,24 @@ and periodically sends it on to
   - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 61
   </details>
   <details>
+    <summary>Met (UK) WOW</summary>
+
+  Send to [The Met Office's Weather Observations Website](https://wow.metoffice.gov.uk/):
+
+  Start by [registering a new Site](https://wow.metoffice.gov.uk/sites/create). During registration, one of the fields in your Site's options is "Authentication Key". Choose any 6-Digit number. Then:
+
+  - Set `updateWOW` to `true` on Line 63
+  - Set `wowSiteID` to the generated [Site ID](https://wow.metoffice.gov.uk/sites) on Line 64
+  - Set `wowAuthKey` to your chosen [6-Digit Authentication Key](https://wow.metoffice.gov.uk/sites) that you chose when creating or editing the Site on line 65
+  </details>
+  <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
 
   Send to [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml). Start by [registering for a new station](https://madis.ncep.noaa.gov/madis_cwop.shtml), then when you receive your email:
 
-  - Set `updateCWOP` to `true` on Line 63
-  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 64
-  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 65
+  - Set `updateCWOP` to `true` on Line 67
+  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 68
+  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 69
   </details>
 
 4. Run the "Schedule" function (not the "doPost" function) by selecting "Schedule" in the dropdown and pressing the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.
