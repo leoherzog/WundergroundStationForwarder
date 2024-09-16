@@ -187,6 +187,12 @@ function refreshFromIBM_() {
     "in": Number(ibmConditions.imperial.precipTotal).toFixedNumber(3),
     "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
   };
+
+  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  };
   
   console.log(JSON.stringify(conditions));
   
@@ -340,6 +346,12 @@ function refreshFromAcurite_() {
   if (rain != null) conditions.precipRate = {
     "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
     "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
+  };
+  
+  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
   };
 
   console.log(JSON.stringify(conditions));
@@ -598,6 +610,12 @@ function refreshFromAmbientWeather_() {
     "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
   };
   
+  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
+  };
+  
   console.log(JSON.stringify(conditions));
   
   CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
@@ -669,6 +687,12 @@ function refreshFromAPRSFI() {
   if (aprsConditions.rain_24h != null) conditions.precipLast24Hours = {
     "in": Number(aprsConditions.rain_24h).mmToIn().toFixedNumber(3),
     "mm": Number(aprsConditions.rain_24h).toFixedNumber(2)
+  };
+  
+  let calculatedHourlyPrecipRate = getCalculatedHourlyPrecipRate_(conditions.precipRate.in);
+  if (calculatedHourlyPrecipRate != null) conditions.precipLastHour = {
+    "in": Number(calculatedHourlyPrecipRate).toFixedNumber(3),
+    "mm": Number(calculatedHourlyPrecipRate).inTomm().toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
@@ -1047,35 +1071,33 @@ function updateCWOP_() {
 }
 
 function getCalculatedHourlyPrecipRate_(currentPrecipRate) {
+
+  const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
   
   let precipHistory = JSON.parse(CacheService.getScriptCache().get('calculatedHourlyPrecipRate') || '[]');
-
-  let now = new Date();
+  const currentTime = new Date().getTime();
   
-  // add the new reading with a timestamp
-  precipHistory.push({
-    "rate": currentPrecipRate,
-    "timestamp": now.getTime()
-  });
+  // add the new reading and remove old entries
+  precipHistory.push({ rate: currentPrecipRate, timestamp: currentTime });
+  precipHistory = precipHistory.filter(entry => entry.timestamp >= currentTime - ONE_HOUR_MS);
   
-  // remove entries older than 1 hour
-  const oneHourAgo = now.getTime() - 3600000;
-  precipHistory = precipHistory.filter(entry => entry.timestamp >= oneHourAgo);
-
-  console.log(JSON.stringify(precipHistory));
+  // save the updated history back to cache
+  CacheService.getScriptCache().put('calculatedHourlyPrecipRate', JSON.stringify(precipHistory), 21600); // 6 hours cache
   
-  CacheService.getScriptCache().put('calculatedHourlyPrecipRate', JSON.stringify(precipHistory), 21600); // 6 hours
-  
-  // calculate the average if we have data spanning close to an hour
-  if (precipHistory.length > 1 && 
-      (precipHistory[precipHistory.length - 1].timestamp - precipHistory[0].timestamp) >= 3600000 * 0.9) { // are there two or more readings spanning almost an hour?
-    const sum = precipHistory.reduce((acc, entry) => acc + entry.rate, 0);
-    const average = sum / precipHistory.length;
-    return average;
-  } else {
-    return null; // not enough data spanning an hour yet
+  // calculate the accumulation if we have sufficient data
+  if (precipHistory.length > 1 && currentTime - precipHistory[0].timestamp >= ONE_HOUR_MS * 0.95) { // are there two or more readings spanning almost an hour?
+    const totalPrecip = precipHistory.reduce((acc, entry, index, array) => {
+      if (index === 0) return acc; // skip the first entry
+      const prevEntry = array[index - 1];
+      const timeFraction = (entry.timestamp - prevEntry.timestamp) / ONE_HOUR_MS; // how much of one hour does the last entry to this entry represent
+      return acc + prevEntry.rate * timeFraction; // add that much of the rain rate during that fraction of the hour to the total
+    }, 0);
+    
+    return totalPrecip;
   }
   
+  return null; // not enough data spanning an hour yet
+
 }
 
 // https://gist.github.com/rcknr/ad7d4623b0a2d90415323f96e634cdee
