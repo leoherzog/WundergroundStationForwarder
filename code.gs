@@ -10,7 +10,7 @@
 const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'aprs' (aprs.fi), or 'custom' (custom webhook in rtl_433 format)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-const ibmStationId = 'KXXXXXXXXXX';
+const ibmStationID = 'KXXXXXXXXXX';
 // or
 const acuriteUsername = 'xxxxxx@example.com';
 const acuritePassword = 'xxxxxxxxxxxxxxxxxx';
@@ -36,12 +36,12 @@ const customStationLon = 'xx.xxxxxx';
 // Sending data
 
 const updateWunderground = false;
-const wundergroundStationId = 'KXXXXXXXXXX';
+const wundergroundStationID = 'KXXXXXXXXXX';
 const wundergroundStationKey = 'xxxxxxxx';
 ///
 const updateWindy = false;
 const windyAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-const windyStationId = '0';
+const windyStationID = '0';
 ///
 const updatePWSWeather = false;
 const pwsWeatherAPIKey = 'XXXXXXXXXXX';
@@ -132,7 +132,7 @@ function Schedule() {
 // https://www.wunderground.com/member/api-keys
 function refreshFromIBM_() {
 
-  let ibmConditions = fetchJSON_('https://api.weather.com/v2/pws/observations/current?stationId=' + ibmStationId + '&format=json&units=e&numericPrecision=decimal&apiKey=' + ibmAPIKey);
+  let ibmConditions = fetchJSON_('https://api.weather.com/v2/pws/observations/current?stationId=' + ibmStationID + '&format=json&units=e&numericPrecision=decimal&apiKey=' + ibmAPIKey);
   if (!ibmConditions) return false; // still no luck? give up
 
   // console.log(JSON.stringify(ibmConditions));
@@ -813,7 +813,7 @@ function updateWunderground_() {
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   let request = 'https://rtupdate.wunderground.com/weatherstation/updateweatherstation.php';
-  request += '?ID=' + wundergroundStationId;
+  request += '?ID=' + wundergroundStationID;
   request += '&PASSWORD=' + wundergroundStationKey;
   request += '&dateutc=' + encodeURIComponent(Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyy-MM-dd HH:mm:ss'));
   if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
@@ -843,7 +843,7 @@ function updateWindy_() {
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
   
   let request = 'https://stations.windy.com/pws/update/' + windyAPIKey;
-  request += '?stationId=' + windyStationId;
+  request += '?stationId=' + windyStationID;
   request += '&time=' + new Date(conditions.time).toISOString();
   if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
   if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;
