@@ -1074,7 +1074,7 @@ function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
 
   const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
   
-  let precipHistory = JSON.parse(CacheService.getScriptCache().get('calculatedHourlyPrecipAccum') || '[]');
+  let precipHistory = JSON.parse(CacheService.getScriptCache().get('hourlyPrecipHistory') || '[]');
   const currentTime = new Date().getTime();
   
   // add the new reading and remove old entries
@@ -1082,7 +1082,7 @@ function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
   precipHistory = precipHistory.filter(entry => entry.timestamp >= currentTime - ONE_HOUR_MS);
   
   // save the updated history back to cache
-  CacheService.getScriptCache().put('calculatedHourlyPrecipAccum', JSON.stringify(precipHistory), 21600); // 6 hours cache
+  CacheService.getScriptCache().put('hourlyPrecipHistory', JSON.stringify(precipHistory), 21600); // 6 hours cache
   
   // calculate the accumulation if we have sufficient data
   if (precipHistory.length > 1 && currentTime - precipHistory[0].timestamp >= ONE_HOUR_MS * 0.95) { // are there two or more readings spanning almost an hour?
