@@ -1136,7 +1136,7 @@ function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
 // https://gist.github.com/rcknr/ad7d4623b0a2d90415323f96e634cdee
 function md5_(input) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, input)
-    .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '');
+    .reduce((output, byte) => output + (byte & 255).toString(16).padStart(2, '0'), '');
 }
 
 function checkGithubReleaseVersion_() {
