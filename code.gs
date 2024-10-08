@@ -82,6 +82,7 @@ const cwopValidationCode = null;
 let version = 'v2.8.0';
 
 function Schedule() {
+  if (updateWunderground && datasource === 'ibm') throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
   switch (datasource) {
     case 'ibm':
