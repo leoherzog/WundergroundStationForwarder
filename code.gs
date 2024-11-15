@@ -1016,6 +1016,7 @@ function updateWindGuru_() {
   let hash = md5_(salt + windGuruStationUID + windGuruStationPassword);
   request += '&hash=' + hash;
   request += '&interval=60';
+  request += '&unixtime=' + (conditions.time / 1000).toFixedNumber(0);
   if (conditions.temp != null) request += '&temperature=' + conditions.temp.c;
   if (conditions.windSpeed != null) request += '&wind_avg=' + conditions.windSpeed.knots;
   if (conditions.windGust != null) request += '&wind_max=' + conditions.windGust.knots;
