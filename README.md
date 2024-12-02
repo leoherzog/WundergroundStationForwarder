@@ -7,6 +7,7 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 - [Davis WeatherLink](https://weatherlink.com/),
 - [WeatherFlow Tempest](https://tempestwx.com/),
 - [Ambient Weather](https://ambientweather.net/),
+- [Ecowitt](https://ecowitt.net/),
 - [aprs.fi (CWOP)](https://aprs.fi/), or
 - a custom data source in [RTL_433 JSON format](https://www.triq.org/rtl_433/DATA_FORMAT.html),
 
