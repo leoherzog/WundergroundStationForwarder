@@ -27,7 +27,8 @@ const weatherflowStationId = 'xxxxx';
 const ambientWeatherStationName = 'xxxxxx';
 const ambientWeatherApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 // or
-const ecowittAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const ecowittAPIKey = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+const ecowittApplicationKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ecowittMacAddress = 'XX:XX:XX:XX:XX:XX';
 // or
 const aprsStationID = 'xxxxxx';
@@ -641,7 +642,7 @@ function refreshFromAmbientWeather_() {
 // doc.ecowitt.net
 function refreshFromEcowitt_() {
 
-  let ecowittConditions = fetchJSON_('https://api.ecowitt.net/api/v3/device/real_time?application_key=' + Utilities.newBlob(Utilities.base64Decode('MzA5RjIyQjRDM0NEQzQ4MUI2QjI2RUYyRTJEMUM3N0Q=')).getDataAsString() + '&api_key=' + ecowittAPIKey + '&mac=' + ecowittMacAddress + '&call_back=all&temp_unitid=2&pressure_unitid=4&wind_speed_unitid=9&rainfall_unitid=13&solar_irradiance_unitid=16');
+  let ecowittConditions = fetchJSON_('https://api.ecowitt.net/api/v3/device/real_time?application_key=' + ecowittApplicationKey + '&api_key=' + ecowittAPIKey + '&mac=' + ecowittMacAddress + '&call_back=all&temp_unitid=2&pressure_unitid=4&wind_speed_unitid=9&rainfall_unitid=13&solar_irradiance_unitid=16');
   if (!ecowittConditions || ecowittConditions.code !== 0) return false; // still no luck? give up
   // console.log(JSON.stringify(ecowittConditions));
 
