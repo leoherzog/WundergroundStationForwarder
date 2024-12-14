@@ -746,7 +746,7 @@ function refreshFromEcowitt_() {
 }
 
 // https://aprs.fi/page/api
-function refreshFromAPRSFI() {
+function refreshFromAPRSFI_() {
 
   let aprsStations = fetchJSON_('https://api.aprs.fi/api/get?name=' + aprsStationID + '&what=wx&format=json&apikey=' + aprsApiKey);
   if (!aprsStations || !aprsStations?.entries || !aprsStations?.entries.length) return false; // still no luck? give up
