@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'aprs' (aprs.fi), or 'custom' (custom webhook in rtl_433 format)
+const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), or 'custom' (custom webhook in rtl_433 format)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationID = 'KXXXXXXXXXX';
@@ -26,6 +26,10 @@ const weatherflowStationId = 'xxxxx';
 // or
 const ambientWeatherStationName = 'xxxxxx';
 const ambientWeatherApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+// or
+const ecowittAPIKey = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+const ecowittApplicationKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const ecowittMacAddress = 'XX:XX:XX:XX:XX:XX';
 // or
 const aprsStationID = 'xxxxxx';
 const aprsApiKey = 'xxxxxx.xxxxxxxxxxxxxxxx';
@@ -79,7 +83,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.8.2';
+let version = 'v2.9.0';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
@@ -105,6 +109,10 @@ function Schedule() {
     case 'ambient':
       refreshFromAmbientWeather_();
       ScriptApp.newTrigger('refreshFromAmbientWeather_').timeBased().everyMinutes(1).create();
+      break;
+    case 'ecowitt':
+      refreshFromEcowitt_();
+      ScriptApp.newTrigger('refreshFromEcowitt_').timeBased().everyMinutes(1).create();
       break;
     case 'aprs':
       refreshFromAPRSFI_();
@@ -631,8 +639,114 @@ function refreshFromAmbientWeather_() {
 
 }
 
+// doc.ecowitt.net
+function refreshFromEcowitt_() {
+
+  let ecowittConditions = fetchJSON_('https://api.ecowitt.net/api/v3/device/real_time?application_key=' + ecowittApplicationKey + '&api_key=' + ecowittAPIKey + '&mac=' + ecowittMacAddress + '&call_back=all&temp_unitid=2&pressure_unitid=4&wind_speed_unitid=9&rainfall_unitid=13&solar_irradiance_unitid=16');
+  if (!ecowittConditions || ecowittConditions.code !== 0) return false; // still no luck? give up
+  // console.log(JSON.stringify(ecowittConditions));
+
+  let conditions = {};
+  conditions.time = new Date(Number(ecowittConditions.time) * 1000).getTime();
+  if (ecowittConditions.data?.outdoor) {
+    let outdoor = ecowittConditions.data.outdoor;
+    if (outdoor.temperature?.value) {
+      conditions.temp = {
+        "f": Number(outdoor.temperature.value).toFixedNumber(2),
+        "c": Number(outdoor.temperature.value).fToC().toFixedNumber(2)
+      };
+    }
+    if (outdoor.dew_point?.value) {
+      conditions.dewpoint = {
+        "f": Number(outdoor.dew_point.value).toFixedNumber(2),
+        "c": Number(outdoor.dew_point.value).fToC().toFixedNumber(2)
+      };
+    }
+    if (outdoor.humidity?.value) {
+      conditions.humidity = Number(outdoor.humidity.value).toFixedNumber(0);
+    }
+  }
+  if (ecowittConditions.data?.wind) {
+    let wind = ecowittConditions.data.wind;
+    if (wind.wind_speed?.value) {
+      conditions.windSpeed = {
+        "mph": Number(wind.wind_speed.value).toFixedNumber(2),
+        "mps": Number(wind.wind_speed.value).mphToMPS().toFixedNumber(2),
+        "kph": Number(wind.wind_speed.value).mphToKPH().toFixedNumber(2),
+        "knots": Number(wind.wind_speed.value).mphToKnots().toFixedNumber(2)
+      };
+    }
+    if (wind.wind_gust?.value) {
+      conditions.windGust = {
+        "mph": Number(wind.wind_gust.value).toFixedNumber(2),
+        "mps": Number(wind.wind_gust.value).mphToMPS().toFixedNumber(2),
+        "kph": Number(wind.wind_gust.value).mphToKPH().toFixedNumber(2),
+        "knots": Number(wind.wind_gust.value).mphToKnots().toFixedNumber(2)
+      };
+    }
+    if (wind.wind_direction?.value) {
+      conditions.winddir = Number(wind.wind_direction.value);
+    }
+  }
+  if (ecowittConditions.data?.pressure?.relative?.value) {
+    conditions.pressure = {
+      "inHg": Number(ecowittConditions.data.pressure.relative.value).toFixedNumber(3),
+      "hPa": Number(ecowittConditions.data.pressure.relative.value).inHgTohPa().toFixedNumber(0)
+    };
+  }
+  if (ecowittConditions.data?.solar_and_uvi) {
+    let solar = ecowittConditions.data.solar_and_uvi;
+    if (solar.solar?.value) {
+      conditions.solarRadiation = Number(solar.solar.value);
+    }
+    if (solar.uvi?.value) {
+      conditions.uv = Number(solar.uvi.value);
+    }
+  }
+  if (ecowittConditions.data?.rainfall) {
+    let rain = ecowittConditions.data.rainfall;
+    if (rain.rain_rate?.value) {
+      conditions.precipRate = {
+        "in": Number(rain.rain_rate.value).toFixedNumber(3),
+        "mm": Number(rain.rain_rate.value).inTomm().toFixedNumber(2)
+      };
+    }
+    if (rain.daily?.value) {
+      conditions.precipSinceMidnight = {
+        "in": Number(rain.daily.value).toFixedNumber(3),
+        "mm": Number(rain.daily.value).inTomm().toFixedNumber(2)
+      };
+    }
+    if (rain.hourly?.value) {
+      conditions.precipLastHour = {
+        "in": Number(rain.hourly.value).toFixedNumber(3),
+        "mm": Number(rain.hourly.value).inTomm().toFixedNumber(2)
+      };
+    }
+  }
+  if (conditions.temp && conditions.windSpeed) {
+    conditions.windChill = {
+      "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
+      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+    };
+  }
+  if (conditions.temp && conditions.humidity) {
+    conditions.heatIndex = {
+      "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
+    };
+  }
+  
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
 // https://aprs.fi/page/api
-function refreshFromAPRSFI() {
+function refreshFromAPRSFI_() {
 
   let aprsStations = fetchJSON_('https://api.aprs.fi/api/get?name=' + aprsStationID + '&what=wx&format=json&apikey=' + aprsApiKey);
   if (!aprsStations || !aprsStations?.entries || !aprsStations?.entries.length) return false; // still no luck? give up
