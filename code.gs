@@ -642,87 +642,84 @@ function refreshFromAmbientWeather_() {
 // doc.ecowitt.net
 function refreshFromEcowitt_() {
 
-  let ecowittConditions = fetchJSON_('https://api.ecowitt.net/api/v3/device/real_time?application_key=' + ecowittApplicationKey + '&api_key=' + ecowittAPIKey + '&mac=' + ecowittMacAddress + '&call_back=all&temp_unitid=2&pressure_unitid=4&wind_speed_unitid=9&rainfall_unitid=13&solar_irradiance_unitid=16');
+  let ecowittConditions = fetchJSON_('https://api.ecowitt.net/api/v3/device/info?application_key=' + ecowittApplicationKey + '&api_key=' + ecowittAPIKey + '&mac=' + ecowittMacAddress + '&call_back=all&temp_unitid=2&pressure_unitid=4&wind_speed_unitid=9&rainfall_unitid=13&solar_irradiance_unitid=16');
   if (!ecowittConditions || ecowittConditions.code !== 0) return false; // still no luck? give up
   // console.log(JSON.stringify(ecowittConditions));
 
   let conditions = {};
   conditions.time = new Date(Number(ecowittConditions.time) * 1000).getTime();
-  if (ecowittConditions.data?.outdoor) {
-    let outdoor = ecowittConditions.data.outdoor;
-    if (outdoor.temperature?.value) {
+  conditions.latitude = ecowittConditions.data.latitude.toString();
+  conditions.longitude = ecowittConditions.data.longitude.toString();
+
+  if (ecowittConditions.data?.last_update?.outdoor) {
+    if (ecowittConditions.data?.last_update?.outdoor?.temperature?.value) {
       conditions.temp = {
-        "f": Number(outdoor.temperature.value).toFixedNumber(2),
-        "c": Number(outdoor.temperature.value).fToC().toFixedNumber(2)
+        "f": Number(ecowittConditions.data.last_update.outdoor.temperature.value).toFixedNumber(2),
+        "c": Number(ecowittConditions.data.last_update.outdoor.temperature.value).fToC().toFixedNumber(2)
       };
     }
-    if (outdoor.dew_point?.value) {
+    if (ecowittConditions.data?.last_update?.outdoor?.dew_point?.value) {
       conditions.dewpoint = {
-        "f": Number(outdoor.dew_point.value).toFixedNumber(2),
-        "c": Number(outdoor.dew_point.value).fToC().toFixedNumber(2)
+        "f": Number(ecowittConditions.data.last_update.outdoor.dew_point.value).toFixedNumber(2),
+        "c": Number(ecowittConditions.data.last_update.outdoor.dew_point.value).fToC().toFixedNumber(2)
       };
     }
-    if (outdoor.humidity?.value) {
-      conditions.humidity = Number(outdoor.humidity.value).toFixedNumber(0);
+    if (ecowittConditions.data?.last_update?.outdoor?.humidity?.value) {
+      conditions.humidity = Number(ecowittConditions.data.last_update.outdoor.humidity.value).toFixedNumber(0);
     }
   }
-  if (ecowittConditions.data?.wind) {
-    let wind = ecowittConditions.data.wind;
-    if (wind.wind_speed?.value) {
+  if (ecowittConditions.data?.last_update?.wind) {
+    if (ecowittConditions.data?.last_update?.wind?.wind_speed?.value) {
       conditions.windSpeed = {
-        "mph": Number(wind.wind_speed.value).toFixedNumber(2),
-        "mps": Number(wind.wind_speed.value).mphToMPS().toFixedNumber(2),
-        "kph": Number(wind.wind_speed.value).mphToKPH().toFixedNumber(2),
-        "knots": Number(wind.wind_speed.value).mphToKnots().toFixedNumber(2)
+        "mph": Number(ecowittConditions.data.last_update.wind.wind_speed.value).toFixedNumber(2),
+        "mps": Number(ecowittConditions.data.last_update.wind.wind_speed.value).mphToMPS().toFixedNumber(2),
+        "kph": Number(ecowittConditions.data.last_update.wind.wind_speed.value).mphToKPH().toFixedNumber(2),
+        "knots": Number(ecowittConditions.data.last_update.wind.wind_speed.value).mphToKnots().toFixedNumber(2)
       };
     }
-    if (wind.wind_gust?.value) {
+    if (ecowittConditions.data?.last_update?.wind?.wind_gust?.value) {
       conditions.windGust = {
-        "mph": Number(wind.wind_gust.value).toFixedNumber(2),
-        "mps": Number(wind.wind_gust.value).mphToMPS().toFixedNumber(2),
-        "kph": Number(wind.wind_gust.value).mphToKPH().toFixedNumber(2),
-        "knots": Number(wind.wind_gust.value).mphToKnots().toFixedNumber(2)
+        "mph": Number(ecowittConditions.data.last_update.wind.wind_gust.value).toFixedNumber(2),
+        "mps": Number(ecowittConditions.data.last_update.wind.wind_gust.value).mphToMPS().toFixedNumber(2),
+        "kph": Number(ecowittConditions.data.last_update.wind.wind_gust.value).mphToKPH().toFixedNumber(2),
+        "knots": Number(ecowittConditions.data.last_update.wind.wind_gust.value).mphToKnots().toFixedNumber(2)
       };
     }
-    if (wind.wind_direction?.value) {
-      conditions.winddir = Number(wind.wind_direction.value);
+    if (ecowittConditions.data?.last_update?.wind?.wind_direction?.value) {
+      conditions.winddir = Number(ecowittConditions.data.last_update.wind.wind_direction.value);
     }
   }
-  if (ecowittConditions.data?.pressure?.relative?.value) {
+  if (ecowittConditions.data?.last_update?.pressure?.relative) {
     conditions.pressure = {
-      "inHg": Number(ecowittConditions.data.pressure.relative.value).toFixedNumber(3),
-      "hPa": Number(ecowittConditions.data.pressure.relative.value).inHgTohPa().toFixedNumber(0)
+      "inHg": Number(ecowittConditions.data.last_update.pressure.relative.value).toFixedNumber(3),
+      "hPa": Number(ecowittConditions.data.last_update.pressure.relative.value).inHgTohPa().toFixedNumber(0)
     };
   }
-  if (ecowittConditions.data?.solar_and_uvi) {
-    let solar = ecowittConditions.data.solar_and_uvi;
-    if (solar.solar?.value) {
-      conditions.solarRadiation = Number(solar.solar.value);
+  if (ecowittConditions.data?.last_update?.solar_and_uvi) {
+    if (ecowittConditions.data?.last_update?.solar_and_uvi?.solar?.value) {
+      conditions.solarRadiation = Number(ecowittConditions.data.last_update.solar_and_uvi.solar.value);
     }
-    if (solar.uvi?.value) {
-      conditions.uv = Number(solar.uvi.value);
+    if (ecowittConditions.data?.last_update?.solar_and_uvi?.uvi?.value) {
+      conditions.uv = Number(ecowittConditions.data.last_update.solar_and_uvi.uvi.value);
     }
   }
-  if (ecowittConditions.data?.rainfall) {
-    let rain = ecowittConditions.data.rainfall;
-    if (rain.rain_rate?.value) {
-      conditions.precipRate = {
-        "in": Number(rain.rain_rate.value).toFixedNumber(3),
-        "mm": Number(rain.rain_rate.value).inTomm().toFixedNumber(2)
-      };
-    }
-    if (rain.daily?.value) {
-      conditions.precipSinceMidnight = {
-        "in": Number(rain.daily.value).toFixedNumber(3),
-        "mm": Number(rain.daily.value).inTomm().toFixedNumber(2)
-      };
-    }
-    if (rain.hourly?.value) {
-      conditions.precipLastHour = {
-        "in": Number(rain.hourly.value).toFixedNumber(3),
-        "mm": Number(rain.hourly.value).inTomm().toFixedNumber(2)
-      };
-    }
+  if (ecowittConditions.data?.last_update?.rainfall?.rain_rate?.value) {
+    conditions.precipRate = {
+      "in": Number(ecowittConditions.data.last_update.rainfall.rain_rate.value).toFixedNumber(3),
+      "mm": Number(ecowittConditions.data.last_update.rainfall.rain_rate.value).inTomm().toFixedNumber(2)
+    };
+  }
+  if (ecowittConditions.data?.last_update?.rainfall?.daily?.value) {
+    conditions.precipSinceMidnight = {
+      "in": Number(ecowittConditions.data.last_update.rainfall.daily.value).toFixedNumber(3),
+      "mm": Number(ecowittConditions.data.last_update.rainfall.daily.value).inTomm().toFixedNumber(2)
+    };
+  }
+  if (ecowittConditions.data?.last_update?.rainfall?.hourly?.value) {
+    conditions.precipLastHour = {
+      "in": Number(ecowittConditions.data.last_update.rainfall.hourly.value).toFixedNumber(3),
+      "mm": Number(ecowittConditions.data.last_update.rainfall.hourly.value).inTomm().toFixedNumber(2)
+    };
   }
   if (conditions.temp && conditions.windSpeed) {
     conditions.windChill = {
