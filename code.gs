@@ -357,17 +357,38 @@ function refreshFromAcurite_() {
   if (uv != null) conditions.uv = uv.last_reading_value;
   let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Light Intensity'); // TODO: Unable to test, may be wrong sensor code
   if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
+
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
-  if (rain != null) conditions.precipRate = {
-    "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
-    "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
-  };
-  
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
-  };
+  if (rain != null) {
+    
+    // current accumulation since midnight is provided by the api
+    conditions.precipSinceMidnight = {
+      "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
+      "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
+    };
+    
+    // but the rate is not
+    // calculate rate from most recent accumulation difference
+    let lastRainReading = CacheService.getScriptCache().get('lastAcuriteRainReading');
+    let lastRainTime = CacheService.getScriptCache().get('lastAcuriteRainTime');
+    
+    if (lastRainReading && lastRainTime) {
+      let timeDiff = (conditions.time - Number(lastRainTime)) / (60 * 60 * 1000); // Convert to hours
+      let accumDiff = conditions.precipSinceMidnight.in - Number(lastRainReading);
+      
+      if (timeDiff > 0 && accumDiff >= 0) {
+        conditions.precipRate = {
+          "in": (accumDiff / timeDiff).toFixedNumber(3),
+          "mm": (accumDiff / timeDiff).inTomm().toFixedNumber(2)
+        };
+      }
+    }
+    
+    // cache current reading for next rate calculation  
+    CacheService.getScriptCache().put('lastAcuriteRainReading', conditions.precipSinceMidnight.in.toString(), 21600);
+    CacheService.getScriptCache().put('lastAcuriteRainTime', conditions.time.toString(), 21600);
+
+  }
 
   console.log(JSON.stringify(conditions));
   
