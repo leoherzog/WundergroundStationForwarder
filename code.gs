@@ -332,9 +332,9 @@ function refreshFromAcurite_() {
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
     "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(2),
-    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2),
+    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToMPS().toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2),
     "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(2) : Number(windgust.last_reading_value).toFixedNumber(2),
-    "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(2) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(2)
+    "knots": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(2) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(2)
   };
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
