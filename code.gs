@@ -346,8 +346,8 @@ function refreshFromAcurite_() {
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
   if (humidity != null) conditions.humidity = Number(humidity.last_reading_value).toFixedNumber(0);
   if (temp != null && windspeed != null) conditions.windChill = {
-    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+    "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+    "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
   };
   if (temp != null && humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
@@ -462,8 +462,8 @@ function refreshFromDavis_() {
     };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
-      "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+      "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
     };
   };
   if (davisConditions.sensors[0].data[0].heat_index != null) {
@@ -549,8 +549,8 @@ function refreshFromWeatherflow_() {
     };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
-      "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+      "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
     };
   };
   if (weatherflowConditions.obs[0].heat_index != null) {
@@ -629,8 +629,8 @@ function refreshFromAmbientWeather_() {
   };
   if (station.lastData.humidity != null) conditions.humidity = Number(station.lastData.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
-    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+    "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+    "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
   };
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
@@ -749,8 +749,8 @@ function refreshFromEcowitt_() {
   }
   if (conditions.temp && conditions.windSpeed) {
     conditions.windChill = {
-      "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+      "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
     };
   }
   if (conditions.temp && conditions.humidity) {
@@ -812,8 +812,8 @@ function refreshFromAPRSFI_() {
   };
   if (aprsConditions.humidity != null) conditions.humidity = Number(aprsConditions.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
-    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+    "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+    "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
   };
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
@@ -920,8 +920,8 @@ function doPost(request) {
   };
   if (receivedJSON.humidity != null) conditions.humidity = Number(receivedJSON.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
-    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
+    "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+    "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
   }
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
@@ -1368,14 +1368,13 @@ Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
 Number.prototype.mmToIn = function() { return this * 0.03937; }
 // https://www.weather.gov/media/epz/wxcalc/windChill.pdf
-Number.prototype.windChillF = function(windSpeedMPH) {
-  if (this > 50 || windSpeedMPH < 3) return this;
-  return 35.74 + 0.6215 * this - 35.75 * Math.pow(windSpeedMPH, 0.16) + 0.4275 * this * Math.pow(windSpeedMPH, 0.16);
-}
-Number.prototype.windChillC = function(windSpeedKPH) {
-  if (this > 10 || windSpeedKPH < 4.8) return this;
-  return 13.12 + 0.6215 * this - 11.37 * Math.pow(windSpeedKPH, 0.16) + 0.3965 * this * Math.pow(windSpeedKPH, 0.16);
-}
+Number.prototype.windChill = function(windSpeed, units='F') {
+  let T = units === 'F' ? this : this.cToF();
+  let W = units === 'F' ? windSpeed : windSpeed.kphToMPH();
+  if (T > 50 || W < 3) return units === 'F' ? T : T.fToC();
+  let windChillF = 35.74 + 0.6215 * T - 35.75 * Math.pow(W, 0.16) + 0.4275 * T * Math.pow(W, 0.16);
+  return units === 'F' ? windChillF : windChillF.fToC();
+ }
 // https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
 Number.prototype.heatIndex = function(humidity, units='F') {
   let T = units === 'F' ? this : this.cToF();
