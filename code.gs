@@ -83,7 +83,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.9.1';
+let version = 'v2.9.2';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
@@ -332,9 +332,9 @@ function refreshFromAcurite_() {
   let windgust = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Speed');
   if (windgust != null) conditions.windGust = {
     "mph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPH().toFixedNumber(2),
-    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2),
+    "mps": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToMPS().toFixedNumber(2) : Number(windgust.last_reading_value).kphToMPS().toFixedNumber(2),
     "kph": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKPH().toFixedNumber(2) : Number(windgust.last_reading_value).toFixedNumber(2),
-    "knots": windspeed.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(2) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(2)
+    "knots": windgust.chart_unit === 'mph' ? Number(windgust.last_reading_value).mphToKnots().toFixedNumber(2) : Number(windgust.last_reading_value).kphToKnots().toFixedNumber(2)
   };
   let winddir = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Wind Direction');
   if (winddir != null) conditions.winddir = Number(winddir.last_reading_value);
@@ -357,17 +357,43 @@ function refreshFromAcurite_() {
   if (uv != null) conditions.uv = uv.last_reading_value;
   let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Light Intensity'); // TODO: Unable to test, may be wrong sensor code
   if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
+
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
-  if (rain != null) conditions.precipRate = {
-    "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
-    "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
-  };
-  
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
-  };
+  if (rain != null) {
+    
+    // current accumulation since midnight is provided by the api
+    conditions.precipSinceMidnight = {
+      "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
+      "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
+    };
+
+    // but the rate is not
+    conditions.precipRate = {
+      "in": 0,
+      "mm": 0
+    };
+    
+    // calculate rate from most recent accumulation difference
+    let lastRainReading = CacheService.getScriptCache().get('lastAcuriteRainReading');
+    let lastRainTime = CacheService.getScriptCache().get('lastAcuriteRainTime');
+    
+    if (lastRainReading && lastRainTime) {
+      let timeDiff = (conditions.time - Number(lastRainTime)) / (60 * 60 * 1000); // Convert to hours
+      let accumDiff = conditions.precipSinceMidnight.in - Number(lastRainReading);
+      
+      if (timeDiff > 0 && timeDiff < 0.1 && accumDiff >= 0) { // maximum six minutes since last check and accumulation has increased
+        conditions.precipRate = {
+          "in": (accumDiff / timeDiff).toFixedNumber(3),
+          "mm": (accumDiff / timeDiff).inTomm().toFixedNumber(2)
+        };
+      }
+    }
+    
+    // cache current reading for next rate calculation  
+    CacheService.getScriptCache().put('lastAcuriteRainReading', conditions.precipSinceMidnight.in.toString(), 21600);
+    CacheService.getScriptCache().put('lastAcuriteRainTime', conditions.time.toString(), 21600);
+
+  }
 
   console.log(JSON.stringify(conditions));
   
@@ -523,8 +549,8 @@ function refreshFromWeatherflow_() {
     };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
-      "f": conditions.temp.f.windChillF(conditions.windSpeed).toFixedNumber(2),
-      "c": conditions.temp.c.windChillC(conditions.windSpeed).toFixedNumber(2)
+      "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
+      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
     };
   };
   if (weatherflowConditions.obs[0].heat_index != null) {
@@ -838,7 +864,7 @@ function doPost(request) {
   let conditions = {};
   conditions.time = new Date(receivedJSON.time).getTime();
   conditions.latitude = customStationLat.toString();
-  conditions.longitude = customStationLong.toString();
+  conditions.longitude = customStationLon.toString();
   if (receivedJSON.temperature_F != null) conditions.temp = {
     "f": Number(receivedJSON.temperature_F).toFixedNumber(2),
     "c": Number(receivedJSON.temperature_F).fToC().toFixedNumber(2)
@@ -862,7 +888,7 @@ function doPost(request) {
   if (receivedJSON.wind_avg_mi_h != null) conditions.windSpeed = {
     "mph": Number(receivedJSON.wind_avg_mi_h).toFixedNumber(2),
     "mps": Number(receivedJSON.wind_avg_mi_h).mphToMPS().toFixedNumber(2),
-    "kph": Number(receivedJSON.wind_avg_mi_h).mphToKPH.toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_avg_mi_h).mphToKPH().toFixedNumber(2),
     "knots": Number(receivedJSON.wind_avg_mi_h).mphToKnots().toFixedNumber(2)
   };
   if (receivedJSON.wind_max_m_s != null) conditions.windGust = {
@@ -880,7 +906,7 @@ function doPost(request) {
   if (receivedJSON.wind_max_mi_h != null) conditions.windGust = {
     "mph": Number(receivedJSON.wind_max_mi_h).toFixedNumber(2),
     "mps": Number(receivedJSON.wind_max_mi_h).mphToMPS().toFixedNumber(2),
-    "kph": Number(receivedJSON.wind_max_mi_h).mphToKPH.toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_max_mi_h).mphToKPH().toFixedNumber(2),
     "knots": Number(receivedJSON.wind_max_mi_h).mphToKnots().toFixedNumber(2)
   };
   if (receivedJSON.wind_dir_deg != null) conditions.winddir = receivedJSON.wind_dir_deg;
@@ -894,8 +920,8 @@ function doPost(request) {
   };
   if (receivedJSON.humidity != null) conditions.humidity = Number(receivedJSON.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
-    "f": conditions.temp.f.windChillF(conditions.windSpeed).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed).toFixedNumber(2)
+    "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
+    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
   }
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
@@ -1056,6 +1082,7 @@ function updateOpenWeatherMap_() {
   
   const stationsDetails = JSON.parse(UrlFetchApp.fetch('https://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey).getContentText());
   const internalStationID = stationsDetails.find(station => station['external_id'] == openWeatherMapStationID)['id'];
+  if (!internalStationID) throw 'Station ' + openWeatherMapStationID + ' not found in this OpenWeatherMap account';
   
   let measurements = {"station_id": internalStationID};
   measurements['dt'] = (conditions.time / 1000).toFixedNumber(0);
