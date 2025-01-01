@@ -859,7 +859,7 @@ function doPost(request) {
   let conditions = {};
   conditions.time = new Date(receivedJSON.time).getTime();
   conditions.latitude = customStationLat.toString();
-  conditions.longitude = customStationLong.toString();
+  conditions.longitude = customStationLon.toString();
   if (receivedJSON.temperature_F != null) conditions.temp = {
     "f": Number(receivedJSON.temperature_F).toFixedNumber(2),
     "c": Number(receivedJSON.temperature_F).fToC().toFixedNumber(2)
@@ -883,7 +883,7 @@ function doPost(request) {
   if (receivedJSON.wind_avg_mi_h != null) conditions.windSpeed = {
     "mph": Number(receivedJSON.wind_avg_mi_h).toFixedNumber(2),
     "mps": Number(receivedJSON.wind_avg_mi_h).mphToMPS().toFixedNumber(2),
-    "kph": Number(receivedJSON.wind_avg_mi_h).mphToKPH.toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_avg_mi_h).mphToKPH().toFixedNumber(2),
     "knots": Number(receivedJSON.wind_avg_mi_h).mphToKnots().toFixedNumber(2)
   };
   if (receivedJSON.wind_max_m_s != null) conditions.windGust = {
@@ -901,7 +901,7 @@ function doPost(request) {
   if (receivedJSON.wind_max_mi_h != null) conditions.windGust = {
     "mph": Number(receivedJSON.wind_max_mi_h).toFixedNumber(2),
     "mps": Number(receivedJSON.wind_max_mi_h).mphToMPS().toFixedNumber(2),
-    "kph": Number(receivedJSON.wind_max_mi_h).mphToKPH.toFixedNumber(2),
+    "kph": Number(receivedJSON.wind_max_mi_h).mphToKPH().toFixedNumber(2),
     "knots": Number(receivedJSON.wind_max_mi_h).mphToKnots().toFixedNumber(2)
   };
   if (receivedJSON.wind_dir_deg != null) conditions.winddir = receivedJSON.wind_dir_deg;
