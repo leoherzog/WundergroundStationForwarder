@@ -83,7 +83,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.9.1';
+let version = 'v2.9.2b';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
@@ -366,8 +366,13 @@ function refreshFromAcurite_() {
       "in": rain.chart_unit === 'in' ? Number(rain.last_reading_value).toFixedNumber(3) : Number(rain.last_reading_value).mmToIn().toFixedNumber(3),
       "mm": rain.chart_unit === 'mm' ? Number(rain.last_reading_value).toFixedNumber(2) : Number(rain.last_reading_value).inTomm().toFixedNumber(2)
     };
-    
+
     // but the rate is not
+    conditions.precipRate = {
+      "in": 0,
+      "mm": 0
+    };
+    
     // calculate rate from most recent accumulation difference
     let lastRainReading = CacheService.getScriptCache().get('lastAcuriteRainReading');
     let lastRainTime = CacheService.getScriptCache().get('lastAcuriteRainTime');
