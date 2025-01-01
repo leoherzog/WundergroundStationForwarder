@@ -376,7 +376,7 @@ function refreshFromAcurite_() {
       let timeDiff = (conditions.time - Number(lastRainTime)) / (60 * 60 * 1000); // Convert to hours
       let accumDiff = conditions.precipSinceMidnight.in - Number(lastRainReading);
       
-      if (timeDiff > 0 && accumDiff >= 0) {
+      if (timeDiff > 0 && timeDiff < 0.1 && accumDiff >= 0) { // maximum six minutes since last check and accumulation has increased
         conditions.precipRate = {
           "in": (accumDiff / timeDiff).toFixedNumber(3),
           "mm": (accumDiff / timeDiff).inTomm().toFixedNumber(2)
