@@ -1077,6 +1077,7 @@ function updateOpenWeatherMap_() {
   
   const stationsDetails = JSON.parse(UrlFetchApp.fetch('https://api.openweathermap.org/data/3.0/stations?APPID=' + openWeatherMapAPIKey).getContentText());
   const internalStationID = stationsDetails.find(station => station['external_id'] == openWeatherMapStationID)['id'];
+  if (!internalStationID) throw 'Station ' + openWeatherMapStationID + ' not found in this OpenWeatherMap account';
   
   let measurements = {"station_id": internalStationID};
   measurements['dt'] = (conditions.time / 1000).toFixedNumber(0);
