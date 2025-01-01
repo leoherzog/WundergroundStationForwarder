@@ -545,7 +545,7 @@ function refreshFromWeatherflow_() {
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
       "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-      "c": conditions.temp.c.windChillC(conditions.windSpeed.mph).toFixedNumber(2)
+      "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
     };
   };
   if (weatherflowConditions.obs[0].heat_index != null) {
@@ -916,7 +916,7 @@ function doPost(request) {
   if (receivedJSON.humidity != null) conditions.humidity = Number(receivedJSON.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
     "f": conditions.temp.f.windChillF(conditions.windSpeed.mph).toFixedNumber(2),
-    "c": conditions.temp.c.windChillC(conditions.windSpeed.mph).toFixedNumber(2)
+    "c": conditions.temp.c.windChillC(conditions.windSpeed.kph).toFixedNumber(2)
   }
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
