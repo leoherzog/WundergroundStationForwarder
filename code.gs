@@ -1378,6 +1378,7 @@ Number.prototype.windChill = function(windSpeed, units='F') {
 // https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
 Number.prototype.heatIndex = function(humidity, units='F') {
   let T = units === 'F' ? this : this.cToF();
+  if (T < 80) return units === 'F' ? T : this;
   let H = humidity;
   let heatIndexF = -42.379 + 2.04901523 * T + 10.14333127 * H - 0.22475541 * T * H - 6.83783 * Math.pow(10, -3) * Math.pow(T, 2) - 5.481717 * Math.pow(10, -2) * Math.pow(H, 2) + 1.22874 * Math.pow(10, -3) * Math.pow(T, 2) * H   + 8.5282 * Math.pow(10, -4) * T * Math.pow(H, 2) - 1.99 * Math.pow(10, -6) * Math.pow(T, 2) * Math.pow(H, 2);
   return units === 'F' ? heatIndexF : heatIndexF.fToC();
