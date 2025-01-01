@@ -1371,7 +1371,7 @@ Number.prototype.mmToIn = function() { return this * 0.03937; }
 Number.prototype.windChill = function(windSpeed, units='F') {
   let T = units === 'F' ? this : this.cToF();
   let W = units === 'F' ? windSpeed : windSpeed.kphToMPH();
-  if (T > 50 || W < 3) return units === 'F' ? T : T.fToC();
+  if (T > 50 || W < 3) return units === 'F' ? T : this;
   let windChillF = 35.74 + 0.6215 * T - 35.75 * Math.pow(W, 0.16) + 0.4275 * T * Math.pow(W, 0.16);
   return units === 'F' ? windChillF : windChillF.fToC();
  }
