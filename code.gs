@@ -120,6 +120,7 @@ function Schedule() {
       break;
     case 'custom':
       console.warn('You have chosen a custom datasource! Please publish this Apps Script project as a web app');
+      break;
     default:
       throw 'Invalid datasource';
   }
