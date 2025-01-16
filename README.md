@@ -117,9 +117,10 @@ and periodically sends it on to
 
   To send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol):
 
+  Your Station ID and Station Keys are on [your Wunderground Stations list](https://www.wunderground.com/member/devices).
   - Set `updateWunderground` to `true` on Line 42
-  - Set your `wundergroundAPIKey` on Line 43
-  - Set your `wundergroundStationID` on line 44
+  - Set your `wundergroundStationID` on Line 43
+  - Set your `wundergroundStationKey` on line 44
   </details>
   <details>
     <summary>Windy.com</summary>
