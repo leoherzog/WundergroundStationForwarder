@@ -430,7 +430,7 @@ function refreshFromDavis_() {
   conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
   conditions.latitude = station.latitude.toString();
   conditions.longitude = station.longitude.toString();
-  if (davisConditions.sensors[0].data[0].temp != null) conditions.temp = {
+  if (davisConditions.sensors[0].data[0].temp_out != null) conditions.temp = {
     "f": Number(davisConditions.sensors[0].data[0].temp_out).toFixedNumber(2),
     "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(2)
   };
