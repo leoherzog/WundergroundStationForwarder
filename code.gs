@@ -430,72 +430,140 @@ function refreshFromDavis_() {
   conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
   conditions.latitude = station.latitude.toString();
   conditions.longitude = station.longitude.toString();
-  if (davisConditions.sensors[0].data[0].temp_out != null) conditions.temp = {
-    "f": Number(davisConditions.sensors[0].data[0].temp_out).toFixedNumber(2),
-    "c": Number(davisConditions.sensors[0].data[0].temp_out).fToC().toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].dew_point != null) conditions.dewpoint = {
-    "f": Number(davisConditions.sensors[0].data[0].dew_point).toFixedNumber(2),
-    "c": Number(davisConditions.sensors[0].data[0].dew_point).fToC().toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].wind_speed != null) conditions.windSpeed = {
-    "mph": Number(davisConditions.sensors[0].data[0].wind_speed).toFixedNumber(2),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_speed).mphToMPS().toFixedNumber(2),
-    "kph": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKPH().toFixedNumber(2),
-    "knots": Number(davisConditions.sensors[0].data[0].wind_speed).mphToKnots().toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].wind_gust_10_min != null) conditions.windGust = {
-    "mph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).toFixedNumber(2),
-    "mps": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToMPS().toFixedNumber(2),
-    "kph": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKPH().toFixedNumber(2),
-    "knots": Number(davisConditions.sensors[0].data[0].wind_gust_10_min).mphToKnots().toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].wind_dir != null) conditions.winddir = davisConditions.sensors[0].data[0].wind_dir;
-  if (davisConditions.sensors[0].data[0].bar != null) conditions.pressure = {
-    "inHg": Number(davisConditions.sensors[0].data[0].bar).toFixedNumber(3),
-    "hPa": Number(davisConditions.sensors[0].data[0].bar).inHgTohPa().toFixedNumber(0)
-  };
-  if (davisConditions.sensors[0].data[0].hum_out != null) conditions.humidity = Number(davisConditions.sensors[0].data[0].hum_out).toFixedNumber(0);
-  if (davisConditions.sensors[0].data[0].wind_chill != null) {
+  
+  // helper function
+  function findValue(fieldNames) {
+    for (const sensor of davisConditions.sensors) {
+      if (!sensor.data || !sensor.data.length) continue;
+      const fieldName = fieldNames.find(field => sensor.data[0][field] != null);
+      if (fieldName) {
+        return Number(sensor.data[0][fieldName]);
+      }
+    }
+    return null;
+  }
+  
+  let tempValue = findValue(['temp_out', 'temp', 'temperature']);
+  if (tempValue != null) {
+    conditions.temp = {
+      "f": tempValue.toFixedNumber(2),
+      "c": tempValue.fToC().toFixedNumber(2)
+    };
+  }
+
+  let dewPointValue = findValue(['dew_point', 'dewpt', 'dewpoint']);
+  if (dewPointValue != null) {
+    conditions.dewpoint = {
+      "f": dewPointValue.toFixedNumber(2),
+      "c": dewPointValue.fToC().toFixedNumber(2)
+    };
+  }
+  
+  let windSpeedValue = findValue(['wind_speed', 'wind_speed_avg', 'windspeed']);
+  if (windSpeedValue != null) {
+    conditions.windSpeed = {
+      "mph": windSpeedValue.toFixedNumber(2),
+      "mps": windSpeedValue.mphToMPS().toFixedNumber(2),
+      "kph": windSpeedValue.mphToKPH().toFixedNumber(2),
+      "knots": windSpeedValue.mphToKnots().toFixedNumber(2)
+    };
+  }
+  
+  let windGustValue = findValue(['wind_gust_10_min', 'wind_gust', 'wind_speed_hi', 'windgust']);
+  if (windGustValue != null) {
+    conditions.windGust = {
+      "mph": windGustValue.toFixedNumber(2),
+      "mps": windGustValue.mphToMPS().toFixedNumber(2),
+      "kph": windGustValue.mphToKPH().toFixedNumber(2),
+      "knots": windGustValue.mphToKnots().toFixedNumber(2)
+    };
+  }
+  
+  let windDirValue = findValue(['wind_dir', 'wind_direction']);
+  if (windDirValue != null) {
+    conditions.winddir = windDirValue;
+  }
+  
+  let pressureValue = findValue(['bar', 'pressure', 'baromin']);
+  if (pressureValue != null) {
+    conditions.pressure = {
+      "inHg": pressureValue.toFixedNumber(3),
+      "hPa": pressureValue.inHgTohPa().toFixedNumber(0)
+    };
+  }
+  
+  let humidityValue = findValue(['humidity', 'hum_out', 'hum']);
+  if (humidityValue != null) {
+    conditions.humidity = humidityValue.toFixedNumber(0);
+  }
+  
+  let windChillValue = findValue(['wind_chill', 'windchill']);
+  if (windChillValue != null) {
     conditions.windChill = {
-      "f": Number(davisConditions.sensors[0].data[0].wind_chill).toFixedNumber(2),
-      "c": Number(davisConditions.sensors[0].data[0].wind_chill).fToC().toFixedNumber(2)
+      "f": windChillValue.toFixedNumber(2),
+      "c": windChillValue.fToC().toFixedNumber(2)
     };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
       "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
       "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
     };
-  };
-  if (davisConditions.sensors[0].data[0].heat_index != null) {
+  }
+  
+  let heatIndexValue = findValue(['heat_index', 'heatindex']);
+  if (heatIndexValue != null) {
     conditions.heatIndex = {
-      "f": Number(davisConditions.sensors[0].data[0].heat_index).toFixedNumber(2),
-      "c": Number(davisConditions.sensors[0].data[0].heat_index).fToC().toFixedNumber(2)
+      "f": heatIndexValue.toFixedNumber(2),
+      "c": heatIndexValue.fToC().toFixedNumber(2)
     };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
-      "f": conditions.temp.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
-      "c": conditions.temp.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
+      "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
     };
-  };
-  if (davisConditions.sensors[0].data[0].uv != null) conditions.uv = davisConditions.sensors[0].data[0].uv;
-  if (davisConditions.sensors[0].data[0].solar_rad != null) conditions.solarRadiation = davisConditions.sensors[0].data[0].solar_rad;
-  if (davisConditions.sensors[0].data[0].rain_storm_in != null) conditions.precipRate = {
-    "in": Number(davisConditions.sensors[0].data[0].rain_storm_in).toFixedNumber(3),
-    "mm": Number(davisConditions.sensors[0].data[0].rain_storm_mm).toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipSinceMidnight = {
-    "in": Number(davisConditions.sensors[0].data[0].rainfall_daily_in).toFixedNumber(3),
-    "mm": Number(davisConditions.sensors[0].data[0].rainfall_daily_mm).toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLast24Hours = {
-    "in": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_in).toFixedNumber(3),
-    "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_24_hr_mm).toFixedNumber(2)
-  };
-  if (davisConditions.sensors[0].data[0].rain_day_in != null) conditions.precipLastHour = {
-    "in": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_in).toFixedNumber(3),
-    "mm": Number(davisConditions.sensors[0].data[0].rainfall_last_60_min_mm).toFixedNumber(2)
-  };
+  }
+  
+  let uvValue = findValue(['uv', 'uv_index']);
+  if (uvValue != null) {
+    conditions.uv = uvValue;
+  }
+
+  let solarRadValue = findValue(['solar_rad', 'solar_radiation']);
+  if (solarRadValue != null) {
+    conditions.solarRadiation = solarRadValue;
+  }
+  
+  let rainRateValue = findValue(['rain_rate_in', 'rain_storm_in', 'rainin']);
+  if (rainRateValue != null) {
+    conditions.precipRate = {
+      "in": rainRateValue.toFixedNumber(3),
+      "mm": rainRateValue.inTomm().toFixedNumber(2)
+    };
+  }
+  
+  let rainDailyValue = findValue(['rainfall_daily_in', 'rain_day_in', 'dailyrainin']);
+  if (rainDailyValue != null) {
+    conditions.precipSinceMidnight = {
+      "in": rainDailyValue.toFixedNumber(3),
+      "mm": rainDailyValue.inTomm().toFixedNumber(2)
+    };
+  }
+  
+  let rain24hValue = findValue(['rainfall_last_24_hr_in', 'rain_24_hr_in']);
+  if (rain24hValue != null) {
+    conditions.precipLast24Hours = {
+      "in": rain24hValue.toFixedNumber(3),
+      "mm": rain24hValue.inTomm().toFixedNumber(2)
+    };
+  }
+  
+  let rainHourValue = findValue(['rainfall_last_60_min_in', 'rain_last_hour_in', 'rain_60_min_in']);
+  if (rainHourValue != null) {
+    conditions.precipLastHour = {
+      "in": rainHourValue.toFixedNumber(3),
+      "mm": rainHourValue.inTomm().toFixedNumber(2)
+    };
+  }
   
   console.log(JSON.stringify(conditions));
   
