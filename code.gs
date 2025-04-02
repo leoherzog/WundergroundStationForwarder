@@ -409,99 +409,168 @@ function refreshFromDavis_() {
   
   let now = Math.round(new Date().getTime() / 1000);
 
-  let signature = Utilities.computeHmacSha256Signature('api-key' + davisApiKey + 't' + now, davisApiSecret).map(function(chr){return (chr+256).toString(16).slice(-2)}).join(''); // sha256 to hex
-
-  let davisStationInfo = fetchJSON_('https://api.weatherlink.com/v2/stations/?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
+  let davisStationInfo = fetchJSON_('https://api.weatherlink.com/v2/stations/?api-key=' + davisApiKey + '&t=' + now, {"x-api-secret": davisApiSecret});
   if (!davisStationInfo) return false; // still no luck? give up
-    
-  // console.log(JSON.stringify(davisStationInfo));
-
-  let station = davisStationInfo.stations.find(station => station.station_name === davisStationName);
-  let stationId = station.station_id;
   
-  signature = Utilities.computeHmacSha256Signature('api-key' + davisApiKey + 'station-id' + stationId + 't' + now, davisApiSecret).map(function(chr){return (chr+256).toString(16).slice(-2)}).join('');
+  let station = davisStationInfo.stations.find(station => station.station_name === davisStationName);
+  if (!station) {
+    console.error('Station "' + davisStationName + '" not found');
+    return false;
+  }
+  
+  let stationId = station.station_id;
 
-  let davisConditions = fetchJSON_('https://api.weatherlink.com/v2/current/' + stationId + '?api-key=' + davisApiKey + '&api-signature=' + signature + '&t=' + now);
+  now = Math.round(new Date().getTime() / 1000);
+
+  let davisConditions = fetchJSON_('https://api.weatherlink.com/v2/current/' + stationId + '?api-key=' + davisApiKey + '&t=' + now, {"x-api-secret": davisApiSecret});
   if (!davisConditions) return false; // still no luck? give up
 
-  // console.log(JSON.stringify(davisConditions));
-
   let conditions = {};
-  conditions.time = davisConditions.sensors[0].data[0].ts * 1000;
   conditions.latitude = station.latitude.toString();
   conditions.longitude = station.longitude.toString();
   
-  // helper function
-  function findValue(fieldNames) {
-    for (const sensor of davisConditions.sensors) {
+  // helper function to search for field names across all sensors
+  function findField(patterns) {
+    for (const sensor of davisConditions.sensors || []) {
+
       if (!sensor.data || !sensor.data.length) continue;
-      const fieldName = fieldNames.find(field => sensor.data[0][field] != null);
-      if (fieldName) {
-        return Number(sensor.data[0][fieldName]);
+      
+      for (const dataPoint of sensor.data) {
+        // set timestamp if found
+        if (dataPoint.ts && !conditions.time) conditions.time = dataPoint.ts * 1000;
+        
+        // check each pattern
+        for (const pattern of patterns) {
+          const key = Object.keys(dataPoint).find(key => key.includes(pattern));
+          if (key && dataPoint[key] != null) {
+            return { key, value: dataPoint[key] };
+          }
+        }
       }
     }
     return null;
   }
   
-  let tempValue = findValue(['temp_out', 'temp', 'temperature']);
-  if (tempValue != null) {
+  // if no timestamp was found, use current time
+  if (!conditions.time) conditions.time = new Date().getTime();
+  
+  let tempField = findField(['temp_out', 'temp', 'temperature']);
+  if (tempField != null) {
+    let isCelsius = tempField.key.includes('_c') || tempField.key.endsWith('c');
     conditions.temp = {
-      "f": tempValue.toFixedNumber(2),
-      "c": tempValue.fToC().toFixedNumber(2)
+      "f": isCelsius ? Number(tempField.value).cToF().toFixedNumber(2) : Number(tempField.value).toFixedNumber(2),
+      "c": isCelsius ? Number(tempField.value).toFixedNumber(2) : Number(tempField.value).fToC().toFixedNumber(2)
     };
   }
-
-  let dewPointValue = findValue(['dew_point', 'dewpt', 'dewpoint']);
-  if (dewPointValue != null) {
+  
+  let dewField = findField(['dew_point', 'dewpoint', 'dewpt']);
+  if (dewField != null) {
+    let isCelsius = dewField.key.includes('_c') || dewField.key.endsWith('c');
     conditions.dewpoint = {
-      "f": dewPointValue.toFixedNumber(2),
-      "c": dewPointValue.fToC().toFixedNumber(2)
+      "f": isCelsius ? Number(dewField.value).cToF().toFixedNumber(2) : Number(dewField.value).toFixedNumber(2),
+      "c": isCelsius ? Number(dewField.value).toFixedNumber(2) : Number(dewField.value).fToC().toFixedNumber(2)
     };
   }
   
-  let windSpeedValue = findValue(['wind_speed', 'wind_speed_avg', 'windspeed']);
-  if (windSpeedValue != null) {
-    conditions.windSpeed = {
-      "mph": windSpeedValue.toFixedNumber(2),
-      "mps": windSpeedValue.mphToMPS().toFixedNumber(2),
-      "kph": windSpeedValue.mphToKPH().toFixedNumber(2),
-      "knots": windSpeedValue.mphToKnots().toFixedNumber(2)
-    };
+  let windSpeedField = findField(['wind_speed', 'windspeed']);
+  if (windSpeedField != null) {
+    let value = Number(windSpeedField.value);
+    let isMps = windSpeedField.key.includes('_mps') || windSpeedField.key.includes('m_s');
+    let isKph = windSpeedField.key.includes('_kph') || windSpeedField.key.includes('km_h');
+    let isKnots = windSpeedField.key.includes('knot');
+    
+    if (isMps) {
+      conditions.windSpeed = {
+        "mph": value.mpsToMPH().toFixedNumber(2),
+        "mps": value.toFixedNumber(2),
+        "kph": value.mpsToKPH().toFixedNumber(2),
+        "knots": value.mpsToKnots().toFixedNumber(2)
+      };
+    } else if (isKph) {
+      conditions.windSpeed = {
+        "mph": value.kphToMPH().toFixedNumber(2),
+        "mps": value.kphToMPS().toFixedNumber(2),
+        "kph": value.toFixedNumber(2),
+        "knots": value.kphToKnots().toFixedNumber(2)
+      };
+    } else if (isKnots) {
+      conditions.windSpeed = {
+        "mph": value.knotsToMPH().toFixedNumber(2),
+        "mps": value.knotsToMPS().toFixedNumber(2),
+        "kph": value.knotsToKPH().toFixedNumber(2),
+        "knots": value.toFixedNumber(2)
+      };
+    } else {
+      conditions.windSpeed = {
+        "mph": value.toFixedNumber(2),
+        "mps": value.mphToMPS().toFixedNumber(2),
+        "kph": value.mphToKPH().toFixedNumber(2),
+        "knots": value.mphToKnots().toFixedNumber(2)
+      };
+    }
   }
   
-  let windGustValue = findValue(['wind_gust_10_min', 'wind_gust', 'wind_speed_hi', 'windgust']);
-  if (windGustValue != null) {
-    conditions.windGust = {
-      "mph": windGustValue.toFixedNumber(2),
-      "mps": windGustValue.mphToMPS().toFixedNumber(2),
-      "kph": windGustValue.mphToKPH().toFixedNumber(2),
-      "knots": windGustValue.mphToKnots().toFixedNumber(2)
-    };
+  let windGustField = findField(['wind_gust', 'gust', 'wind_speed_hi']);
+  if (windGustField != null) {
+    let value = Number(windGustField.value);
+    let isMps = windGustField.key.includes('_mps') || windGustField.key.includes('m_s');
+    let isKph = windGustField.key.includes('_kph') || windGustField.key.includes('km_h');
+    let isKnots = windGustField.key.includes('knot');
+    
+    if (isMps) {
+      conditions.windGust = {
+        "mph": value.mpsToMPH().toFixedNumber(2),
+        "mps": value.toFixedNumber(2),
+        "kph": value.mpsToKPH().toFixedNumber(2),
+        "knots": value.mpsToKnots().toFixedNumber(2)
+      };
+    } else if (isKph) {
+      conditions.windGust = {
+        "mph": value.kphToMPH().toFixedNumber(2),
+        "mps": value.kphToMPS().toFixedNumber(2),
+        "kph": value.toFixedNumber(2),
+        "knots": value.kphToKnots().toFixedNumber(2)
+      };
+    } else if (isKnots) {
+      conditions.windGust = {
+        "mph": value.knotsToMPH().toFixedNumber(2),
+        "mps": value.knotsToMPS().toFixedNumber(2),
+        "kph": value.knotsToKPH().toFixedNumber(2),
+        "knots": value.toFixedNumber(2)
+      };
+    } else {
+      conditions.windGust = {
+        "mph": value.toFixedNumber(2),
+        "mps": value.mphToMPS().toFixedNumber(2),
+        "kph": value.mphToKPH().toFixedNumber(2),
+        "knots": value.mphToKnots().toFixedNumber(2)
+      };
+    }
   }
   
-  let windDirValue = findValue(['wind_dir', 'wind_direction']);
-  if (windDirValue != null) {
-    conditions.winddir = windDirValue;
-  }
-  
-  let pressureValue = findValue(['bar', 'pressure', 'baromin']);
-  if (pressureValue != null) {
+  let windDirField = findField(['wind_dir', 'winddir', 'wind_direction']);
+  if (windDirField != null) conditions.winddir = Number(windDirField.value);
+
+  let pressureField = findField(['bar', 'pressure', 'baro']);
+  if (pressureField != null) {
+    let value = Number(pressureField.value);
+    let isHpa = pressureField.key.includes('hpa') || pressureField.key.includes('mb');
+    
     conditions.pressure = {
-      "inHg": pressureValue.toFixedNumber(3),
-      "hPa": pressureValue.inHgTohPa().toFixedNumber(0)
+      "inHg": isHpa ? value.hPaToinHg().toFixedNumber(3) : value.toFixedNumber(3),
+      "hPa": isHpa ? value.toFixedNumber(0) : value.inHgTohPa().toFixedNumber(0)
     };
   }
   
-  let humidityValue = findValue(['humidity', 'hum_out', 'hum']);
-  if (humidityValue != null) {
-    conditions.humidity = humidityValue.toFixedNumber(0);
-  }
+  let humidityField = findField(['hum', 'humidity']);
+  if (humidityField != null) conditions.humidity = Number(humidityField.value).toFixedNumber(0);
   
-  let windChillValue = findValue(['wind_chill', 'windchill']);
-  if (windChillValue != null) {
+  let windChillField = findField(['wind_chill', 'windchill', 'chill']);
+  if (windChillField != null) {
+    let isCelsius = windChillField.key.includes('_c') || windChillField.key.endsWith('c');
     conditions.windChill = {
-      "f": windChillValue.toFixedNumber(2),
-      "c": windChillValue.fToC().toFixedNumber(2)
+      "f": isCelsius ? Number(windChillField.value).cToF().toFixedNumber(2) : Number(windChillField.value).toFixedNumber(2),
+      "c": isCelsius ? Number(windChillField.value).toFixedNumber(2) : Number(windChillField.value).fToC().toFixedNumber(2)
     };
   } else if (conditions.temp != null && conditions.windSpeed != null) {
     conditions.windChill = {
@@ -510,11 +579,12 @@ function refreshFromDavis_() {
     };
   }
   
-  let heatIndexValue = findValue(['heat_index', 'heatindex']);
-  if (heatIndexValue != null) {
+  let heatIndexField = findField(['heat_index', 'heatindex']);
+  if (heatIndexField != null) {
+    let isCelsius = heatIndexField.key.includes('_c') || heatIndexField.key.endsWith('c');
     conditions.heatIndex = {
-      "f": heatIndexValue.toFixedNumber(2),
-      "c": heatIndexValue.fToC().toFixedNumber(2)
+      "f": isCelsius ? Number(heatIndexField.value).cToF().toFixedNumber(2) : Number(heatIndexField.value).toFixedNumber(2),
+      "c": isCelsius ? Number(heatIndexField.value).toFixedNumber(2) : Number(heatIndexField.value).fToC().toFixedNumber(2)
     };
   } else if (conditions.temp != null && conditions.humidity != null) {
     conditions.heatIndex = {
@@ -523,45 +593,49 @@ function refreshFromDavis_() {
     };
   }
   
-  let uvValue = findValue(['uv', 'uv_index']);
-  if (uvValue != null) {
-    conditions.uv = uvValue;
-  }
-
-  let solarRadValue = findValue(['solar_rad', 'solar_radiation']);
-  if (solarRadValue != null) {
-    conditions.solarRadiation = solarRadValue;
-  }
+  let uvField = findField(['uv', 'uv_index']);
+  if (uvField != null) conditions.uv = Number(uvField.value);
   
-  let rainRateValue = findValue(['rain_rate_in', 'rain_storm_in', 'rainin']);
-  if (rainRateValue != null) {
+  let solarRadField = findField(['solar_rad', 'solarrad', 'radiation']);
+  if (solarRadField != null) conditions.solarRadiation = Number(solarRadField.value);
+  
+  let rainRateField = findField(['rain_rate', 'rain_storm', 'rainrate']);
+  if (rainRateField != null) {
+    let value = Number(rainRateField.value);
+    let isMetric = rainRateField.key.includes('mm');
     conditions.precipRate = {
-      "in": rainRateValue.toFixedNumber(3),
-      "mm": rainRateValue.inTomm().toFixedNumber(2)
+      "in": isMetric ? value.mmToIn().toFixedNumber(3) : value.toFixedNumber(3),
+      "mm": isMetric ? value.toFixedNumber(2) : value.inTomm().toFixedNumber(2)
     };
   }
   
-  let rainDailyValue = findValue(['rainfall_daily_in', 'rain_day_in', 'dailyrainin']);
-  if (rainDailyValue != null) {
+  let rainDailyField = findField(['rainfall_daily', 'rain_day', 'daily']);
+  if (rainDailyField != null) {
+    let value = Number(rainDailyField.value);
+    let isMetric = rainDailyField.key.includes('mm');
     conditions.precipSinceMidnight = {
-      "in": rainDailyValue.toFixedNumber(3),
-      "mm": rainDailyValue.inTomm().toFixedNumber(2)
+      "in": isMetric ? value.mmToIn().toFixedNumber(3) : value.toFixedNumber(3),
+      "mm": isMetric ? value.toFixedNumber(2) : value.inTomm().toFixedNumber(2)
     };
   }
   
-  let rain24hValue = findValue(['rainfall_last_24_hr_in', 'rain_24_hr_in']);
-  if (rain24hValue != null) {
+  let rain24Field = findField(['rainfall_last_24', 'rain_24']);
+  if (rain24Field != null) {
+    let value = Number(rain24Field.value);
+    let isMetric = rain24Field.key.includes('mm');
     conditions.precipLast24Hours = {
-      "in": rain24hValue.toFixedNumber(3),
-      "mm": rain24hValue.inTomm().toFixedNumber(2)
+      "in": isMetric ? value.mmToIn().toFixedNumber(3) : value.toFixedNumber(3),
+      "mm": isMetric ? value.toFixedNumber(2) : value.inTomm().toFixedNumber(2)
     };
   }
   
-  let rainHourValue = findValue(['rainfall_last_60_min_in', 'rain_last_hour_in', 'rain_60_min_in']);
-  if (rainHourValue != null) {
+  let rainHourField = findField(['rainfall_last_60', 'rain_60', 'last_hour']);
+  if (rainHourField != null) {
+    let value = Number(rainHourField.value);
+    let isMetric = rainHourField.key.includes('mm');
     conditions.precipLastHour = {
-      "in": rainHourValue.toFixedNumber(3),
-      "mm": rainHourValue.inTomm().toFixedNumber(2)
+      "in": isMetric ? value.mmToIn().toFixedNumber(3) : value.toFixedNumber(3),
+      "mm": isMetric ? value.toFixedNumber(2) : value.inTomm().toFixedNumber(2)
     };
   }
   
