@@ -33,6 +33,12 @@ const ecowittMacAddress = 'XX:XX:XX:XX:XX:XX';
 // or
 const aprsStationID = 'xxxxxx';
 const aprsApiKey = 'xxxxxx.xxxxxxxxxxxxxxxx';
+// or 
+const netatmoClientId = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoClientSecret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoUsername = 'xxxxxx@example.com';
+const netatmoPassword = 'xxxxxxxxxxxxxxxxxx';
+const netatmoStationName = 'xxxxxxxxxxxxxxx';
 // or
 const customStationLat = 'xx.xxxxxx';
 const customStationLon = 'xx.xxxxxx';
@@ -306,6 +312,11 @@ function refreshFromAcurite_() {
   // console.log(JSON.stringify(sensors));
 
   let acuriteConditions = sensors.devices.find(device => device.name === acuriteStationName);
+
+  if (!acuriteConditions) {
+    console.log('Error: Unable to find Acurite station with name ' + acuriteStationName);
+    return false;
+  }
 
   // console.log(JSON.stringify(acuriteConditions));
 
@@ -839,6 +850,144 @@ function refreshFromAPRSFI_() {
     "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
     "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
+  
+  console.log(JSON.stringify(conditions));
+  
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+  
+  return JSON.stringify(conditions);
+
+}
+
+// https://dev.netatmo.com/apidocumentation/weather
+function refreshFromNetatmo_() {
+
+  let token = CacheService.getScriptCache().get('netatmoToken');
+  if (!token) {
+    let authData = {
+      "grant_type": "password",
+      "client_id": netatmoClientId,
+      "client_secret": netatmoClientSecret,
+      "username": netatmoUsername,
+      "password": netatmoPassword,
+      "scope": "read_station"
+    };
+    
+    let options = {
+      "method": "post",
+      "contentType": "application/x-www-form-urlencoded", // required by oauth2
+      "payload": authData
+    };
+    
+    try {
+      let authResponse = UrlFetchApp.fetch('https://api.netatmo.com/oauth2/token', options).getContentText();
+      let authJson = JSON.parse(authResponse);
+      token = authJson.access_token;
+      
+      // netatmo tokens are valid for 3 hours
+      CacheService.getScriptCache().put('netatmoToken', token, 10800);
+    } catch(e) {
+      console.error('Failed to authenticate with Netatmo API: ' + e.message);
+      return false;
+    }
+  }
+  
+  let stationData = fetchJSON_('https://api.netatmo.com/api/getstationsdata', {"headers": {"Authorization": "Bearer " + token }});
+  if (!stationData || stationData.status !== 'ok' || !stationData.body?.devices) return false;
+  
+  let device = stationData.body.devices.find(device => device.station_name === netatmoStationName);
+  if (!device) {
+    console.error('Could not find Netatmo station with name: ' + netatmoStationName);
+    return false;
+  }
+  
+  // main outdoor module
+  let outdoorModule = device.modules.find(module => module.type === 'NAModule1');
+  if (!outdoorModule) {
+    console.error('No outdoor module found for station: ' + netatmoStationName);
+    return false;
+  }
+  
+  // extract data from modules
+  let conditions = {};
+  conditions.time = device.dashboard_data.time_utc * 1000;
+  conditions.latitude = device.place.location[1].toString();
+  conditions.longitude = device.place.location[0].toString();
+  
+  // outdoor temperature and humidity from outdoor module
+  if (outdoorModule.dashboard_data.Temperature != null) conditions.temp = {
+    "f": Number(outdoorModule.dashboard_data.Temperature).cToF().toFixedNumber(2),
+    "c": Number(outdoorModule.dashboard_data.Temperature).toFixedNumber(2)
+  };
+  if (outdoorModule.dashboard_data.Humidity != null) {
+    conditions.humidity = Number(outdoorModule.dashboard_data.Humidity).toFixedNumber(0);
+  }
+  
+  // main module
+  if (device.dashboard_data.Pressure != null) conditions.pressure = {
+    "inHg": Number(device.dashboard_data.Pressure).hPaToinHg().toFixedNumber(3),
+    "hPa": Number(device.dashboard_data.Pressure).toFixedNumber(0)
+  };
+  
+  // optional wind module
+  let windModule = device.modules.find(module => module.type === 'NAModule2');
+  if (windModule && windModule.dashboard_data) {
+    if (windModule.dashboard_data.WindStrength != null) {
+      conditions.windSpeed = {
+        "mph": Number(windModule.dashboard_data.WindStrength).kphToMPH().toFixedNumber(2),
+        "mps": Number(windModule.dashboard_data.WindStrength).kphToMPS().toFixedNumber(2),
+        "kph": Number(windModule.dashboard_data.WindStrength).toFixedNumber(2),
+        "knots": Number(windModule.dashboard_data.WindStrength).kphToKnots().toFixedNumber(2)
+      };
+    }
+    if (windModule.dashboard_data.GustStrength != null) {
+      conditions.windGust = {
+        "mph": Number(windModule.dashboard_data.GustStrength).kphToMPH().toFixedNumber(2),
+        "mps": Number(windModule.dashboard_data.GustStrength).kphToMPS().toFixedNumber(2),
+        "kph": Number(windModule.dashboard_data.GustStrength).toFixedNumber(2),
+        "knots": Number(windModule.dashboard_data.GustStrength).kphToKnots().toFixedNumber(2)
+      };
+    }
+    if (windModule.dashboard_data.WindAngle != null) {
+      conditions.winddir = windModule.dashboard_data.WindAngle;
+    }
+  }
+  
+  // optional rain module
+  let rainModule = device.modules.find(module => module.type === 'NAModule3');
+  if (rainModule && rainModule.dashboard_data) {
+    if (rainModule.dashboard_data.Rain != null) {
+      conditions.precipRate = {
+        "in": Number(rainModule.dashboard_data.Rain).mmToIn().toFixedNumber(3),
+        "mm": Number(rainModule.dashboard_data.Rain).toFixedNumber(2)
+      };
+    }
+    if (rainModule.dashboard_data.sum_rain_1 != null) {
+      conditions.precipLastHour = {
+        "in": Number(rainModule.dashboard_data.sum_rain_1).mmToIn().toFixedNumber(3),
+        "mm": Number(rainModule.dashboard_data.sum_rain_1).toFixedNumber(2)
+      };
+    }
+    if (rainModule.dashboard_data.sum_rain_24 != null) {
+      conditions.precipLast24Hours = {
+        "in": Number(rainModule.dashboard_data.sum_rain_24).mmToIn().toFixedNumber(3),
+        "mm": Number(rainModule.dashboard_data.sum_rain_24).toFixedNumber(2)
+      };
+    }
+  }
+  
+  if (conditions.temp != null && conditions.windSpeed != null) {
+    conditions.windChill = {
+      "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.windChill(conditions.windSpeed.kph, 'C').toFixedNumber(2)
+    };
+  }
+  if (conditions.temp != null && conditions.humidity != null) {
+    conditions.heatIndex = {
+      "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
+      "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
+    };
+  }
   
   console.log(JSON.stringify(conditions));
   
