@@ -418,12 +418,16 @@ function refreshFromDavis_() {
     return false;
   }
   
+  // console.log(JSON.stringify(station));
+
   let stationId = station.station_id;
 
   now = Math.round(new Date().getTime() / 1000);
 
   let davisConditions = fetchJSON_('https://api.weatherlink.com/v2/current/' + stationId + '?api-key=' + davisApiKey + '&t=' + now, {"x-api-secret": davisApiSecret});
   if (!davisConditions) return false; // still no luck? give up
+
+  // console.log(JSON.stringify(davisConditions));
 
   let conditions = {};
   conditions.latitude = station.latitude.toString();
