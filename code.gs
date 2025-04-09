@@ -460,11 +460,16 @@ function refreshFromDavis_() {
   
   let tempField = findField(['temp_out', 'temp', 'temperature']);
   if (tempField != null) {
-    let isCelsius = tempField.key.includes('_c') || tempField.key.endsWith('c');
-    conditions.temp = {
-      "f": isCelsius ? Number(tempField.value).cToF().toFixedNumber(2) : Number(tempField.value).toFixedNumber(2),
-      "c": isCelsius ? Number(tempField.value).toFixedNumber(2) : Number(tempField.value).fToC().toFixedNumber(2)
-    };
+    let isCelsius = tempField.key.includes('_c') || 
+                    tempField.key.endsWith('c') ||
+                    tempField.key.includes('celsius');
+    let tempValue = Number(tempField.value);
+    if (!isNaN(tempValue)) {
+      conditions.temp = {
+        "f": isCelsius ? tempValue.cToF().toFixedNumber(2) : tempValue.toFixedNumber(2),
+        "c": isCelsius ? tempValue.toFixedNumber(2) : tempValue.fToC().toFixedNumber(2)
+      };
+    }
   }
   
   let dewField = findField(['dew_point', 'dewpoint', 'dewpt']);
@@ -555,15 +560,32 @@ function refreshFromDavis_() {
   let windDirField = findField(['wind_dir', 'winddir', 'wind_direction']);
   if (windDirField != null) conditions.winddir = Number(windDirField.value);
 
-  let pressureField = findField(['bar', 'pressure', 'baro']);
+  let pressureField = findField(['bar', 'pressure', 'baro', 'barometer', 'sea_level_pressure']);
   if (pressureField != null) {
     let value = Number(pressureField.value);
-    let isHpa = pressureField.key.includes('hpa') || pressureField.key.includes('mb');
     
-    conditions.pressure = {
-      "inHg": isHpa ? value.hPaToinHg().toFixedNumber(3) : value.toFixedNumber(3),
-      "hPa": isHpa ? value.toFixedNumber(0) : value.inHgTohPa().toFixedNumber(0)
-    };
+    let isHpa = pressureField.key.includes('hpa') || 
+                pressureField.key.includes('mb') || 
+                pressureField.key.includes('mbar');
+    let isAbsolute = pressureField.key.includes('absolute') || 
+                     pressureField.key.includes('abs') || 
+                     pressureField.key === 'bar';
+    let isSeaLevel = pressureField.key.includes('sea') || 
+                     pressureField.key.includes('sl') || 
+                     pressureField.key === 'bar_sea_level';
+    
+    if (!isAbsolute || isSeaLevel) {
+      conditions.pressure = {
+        "inHg": isHpa ? value.hPaToinHg().toFixedNumber(3) : value.toFixedNumber(3),
+        "hPa": isHpa ? value.toFixedNumber(0) : value.inHgTohPa().toFixedNumber(0)
+      };
+    } else {
+      console.warn('Using absolute pressure which may need correction');
+      conditions.pressure = {
+        "inHg": isHpa ? value.hPaToinHg().toFixedNumber(3) : value.toFixedNumber(3),
+        "hPa": isHpa ? value.toFixedNumber(0) : value.inHgTohPa().toFixedNumber(0)
+      };
+    }
   }
   
   let humidityField = findField(['hum', 'humidity']);
