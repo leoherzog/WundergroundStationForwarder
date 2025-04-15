@@ -443,7 +443,14 @@ function refreshFromDavis_() {
         // set timestamp if found
         if (dataPoint.ts && !conditions.time) conditions.time = dataPoint.ts * 1000;
         
-        // check each pattern
+        // exact match?
+        for (const pattern of patterns) {
+          if (dataPoint[pattern] != null) {
+            return { key: pattern, value: dataPoint[pattern] };
+          }
+        }
+        
+        // partial match?
         for (const pattern of patterns) {
           const key = Object.keys(dataPoint).find(key => key.includes(pattern));
           if (key && dataPoint[key] != null) {
