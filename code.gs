@@ -394,6 +394,13 @@ function refreshFromAcurite_() {
     CacheService.getScriptCache().put('lastAcuriteRainReading', conditions.precipSinceMidnight.in.toString(), 21600);
     CacheService.getScriptCache().put('lastAcuriteRainTime', conditions.time.toString(), 21600);
 
+    // calculate rolling hourly precipitation accumulation
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+      "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+      "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
+    };
+
   }
 
   console.log(JSON.stringify(conditions));
@@ -630,6 +637,13 @@ function refreshFromDavis_() {
     conditions.precipLastHour = {
       "in": Number(hourIn).toFixedNumber(3),
       "mm": Number(hourMm).toFixedNumber(2)
+    };
+  }
+  if (rateIn != null && conditions.precipRate.in) { // Davis may not provide rate, so calculate it from the last hour accumulation
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(Number(conditions.precipRate.in));
+    if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+      "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+      "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
     };
   }
   
