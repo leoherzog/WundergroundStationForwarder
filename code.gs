@@ -518,7 +518,7 @@ function refreshFromDavis_() {
   conditions.latitude = station.latitude.toString();
   conditions.longitude = station.longitude.toString();
   
-  let temp = findValue(aliasFor('temp_out'));
+  let temp = findValue(aliasFor('temp_out')) || findValue('temp');
   if (temp != null) {
     conditions.temp = {
       "f": Number(temp).toFixedNumber(2),
@@ -559,7 +559,7 @@ function refreshFromDavis_() {
     conditions.winddir = Number(winddir);
   }
   
-  let pressure = findValue(aliasFor('bar'));
+  let pressure = findValue('bar_sea_level') || findValue('bar_absolute') || findValue(aliasFor('bar'));
   if (pressure != null) {
     conditions.pressure = {
       "inHg": Number(pressure).toFixedNumber(3),
@@ -567,7 +567,7 @@ function refreshFromDavis_() {
     };
   }
   
-  let humidity = findValue('hum_out');
+  let humidity = findValue('hum_out') || findValue('hum');
   if (humidity != null) {
     conditions.humidity = Number(humidity).toFixedNumber(0);
   }
@@ -598,10 +598,10 @@ function refreshFromDavis_() {
     };
   }
   
-  let uv = findValue('uv');
+  let uv = findValue('uv') || findValue('uv_index');
   if (uv != null) conditions.uv = uv;
   
-  let solarradiation = findValue('solar_rad');
+  let solarradiation = findValue('solar_rad') || findValue('solar_radiation');
   if (solarradiation != null) conditions.solarRadiation = solarradiation;
   
   let rateIn = findValue('rain_rate_in') || findValue('rain_storm_in');
