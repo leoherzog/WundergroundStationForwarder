@@ -554,7 +554,7 @@ function refreshFromDavis_() {
     };
   }
   
-  let winddir = findValue('wind_dir');
+  let winddir = findValue('wind_dir') || findValue('wind_dir_last');
   if (winddir != null) {
     conditions.winddir = Number(winddir);
   }
