@@ -204,7 +204,7 @@ function refreshFromIBM_() {
     "mm": Number(ibmConditions.imperial.precipTotal).inTomm().toFixedNumber(2)
   };
 
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipFromDaily_(conditions.precipSinceMidnight?.in);
   if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
     "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
     "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
@@ -395,7 +395,7 @@ function refreshFromAcurite_() {
     CacheService.getScriptCache().put('lastAcuriteRainTime', conditions.time.toString(), 21600);
 
     // calculate rolling hourly precipitation accumulation
-    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipFromDaily_(conditions.precipSinceMidnight?.in);
     if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
       "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
       "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
@@ -640,7 +640,7 @@ function refreshFromDavis_() {
     };
   }
   if (rateIn != null && conditions.precipRate.in) { // Davis may not provide rate, so calculate it from the last hour accumulation
-    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(Number(conditions.precipRate.in));
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipFromDaily_(conditions.precipSinceMidnight?.in);
     if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
       "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
       "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
@@ -802,7 +802,7 @@ function refreshFromAmbientWeather_() {
     "mm": Number(station.lastData['24hourrainin']).inTomm().toFixedNumber(2)
   };
   
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipFromDaily_(conditions.precipSinceMidnight?.in);
   if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
     "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
     "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
@@ -984,7 +984,7 @@ function refreshFromAPRSFI_() {
     "mm": Number(aprsConditions.rain_24h).toFixedNumber(2)
   };
   
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipFromDaily_(conditions.precipSinceMidnight?.in);
   if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
     "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
     "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
@@ -1395,34 +1395,60 @@ function updateCWOP_() {
   
 }
 
-function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
-
-  const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
+function getCalculatedHourlyPrecipFromDaily_(currentDailyAccum) {
   
-  let precipHistory = JSON.parse(CacheService.getScriptCache().get('hourlyPrecipHistory') || '[]');
-  const currentTime = new Date().getTime();
-  
-  // add the new reading and remove old entries
-  precipHistory.push({ "rate": currentPrecipRate, "timestamp": currentTime });
-  precipHistory = precipHistory.filter(entry => entry.timestamp >= currentTime - ONE_HOUR_MS);
-  
-  // save the updated history back to cache
-  CacheService.getScriptCache().put('hourlyPrecipHistory', JSON.stringify(precipHistory), 21600); // 6 hours cache
-  
-  // calculate the accumulation if we have sufficient data
-  if (precipHistory.length > 1 && currentTime - precipHistory[0].timestamp >= ONE_HOUR_MS * 0.95) { // are there two or more readings spanning almost an hour?
-    const totalPrecip = precipHistory.reduce((acc, entry, index, array) => {
-      if (index === 0) return acc; // skip the first entry
-      const prevEntry = array[index - 1];
-      const timeFraction = (entry.timestamp - prevEntry.timestamp) / ONE_HOUR_MS; // how much of one hour does the last entry to this entry represent
-      return acc + prevEntry.rate * timeFraction; // add that much of the rain rate during that fraction of the hour to the total
-    }, 0);
-    
-    return totalPrecip;
+  // Skip if no daily accumulation data
+  if (currentDailyAccum == null || currentDailyAccum < 0) {
+    return null;
   }
   
-  return null; // not enough data spanning an hour yet
-
+  const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
+  const TEN_MINUTES_MS = 600000; // 10 minutes in milliseconds
+  
+  const cache = CacheService.getScriptCache();
+  let precipHistory = JSON.parse(cache.get('dailyPrecipHistory') || '[]');
+  const currentTime = new Date().getTime();
+  
+  // Add current reading with daily accumulation
+  precipHistory.push({ 
+    "daily": currentDailyAccum, 
+    "timestamp": currentTime 
+  });
+  
+  // Keep only last 70 minutes of data (1 hour + 10 minute buffer)
+  precipHistory = precipHistory.filter(entry => 
+    entry.timestamp >= currentTime - ONE_HOUR_MS - TEN_MINUTES_MS
+  );
+  
+  // Save the updated history back to cache
+  cache.put('dailyPrecipHistory', JSON.stringify(precipHistory), 21600); // 6 hours cache
+  
+  // Find a reading from approximately 1 hour ago (within a 10-minute window)
+  const hourAgoReading = precipHistory.find(entry => 
+    entry.timestamp <= currentTime - ONE_HOUR_MS && 
+    entry.timestamp >= currentTime - ONE_HOUR_MS - TEN_MINUTES_MS
+  );
+  
+  if (hourAgoReading) {
+    // Check for midnight reset (current daily is less than hour-ago daily)
+    if (currentDailyAccum < hourAgoReading.daily) {
+      // Midnight crossed - can't accurately calculate
+      return null;
+    }
+    
+    // Calculate hourly accumulation as difference in daily totals
+    const hourlyAccum = currentDailyAccum - hourAgoReading.daily;
+    
+    // Sanity check - hourly shouldn't exceed daily
+    if (hourlyAccum > currentDailyAccum) {
+      return null;
+    }
+    
+    return hourlyAccum;
+  }
+  
+  // Not enough historical data yet
+  return null;
 }
 
 // https://gist.github.com/rcknr/ad7d4623b0a2d90415323f96e634cdee
