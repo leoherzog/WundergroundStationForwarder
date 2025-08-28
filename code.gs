@@ -190,7 +190,7 @@ function refreshFromIBM_() {
   };
   if (ibmConditions.imperial.pressure != null) conditions.pressure = {
     "inHg": Number(ibmConditions.imperial.pressure).toFixedNumber(3),
-    "hPa": Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(0)
+    "hPa": Number(ibmConditions.imperial.pressure).inHgTohPa().toFixedNumber(1)
   };
   if (ibmConditions.humidity != null) conditions.humidity = Number(ibmConditions.humidity).toFixedNumber(0);
   if (ibmConditions.uv != null) conditions.uv = ibmConditions.uv;
@@ -342,7 +342,7 @@ function refreshFromAcurite_() {
   let pressure = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Barometric Pressure');
   if (pressure != null) conditions.pressure = {
     "inHg": pressure.chart_unit === 'inHg' ? Number(pressure.last_reading_value).toFixedNumber(3) : Number(pressure.last_reading_value).hPaToinHg().toFixedNumber(3),
-    "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(0) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(0)
+    "hPa": pressure.chart_unit === 'hPa' ? Number(pressure.last_reading_value).toFixedNumber(1) : Number(pressure.last_reading_value).inHgTohPa().toFixedNumber(1)
   };
   let humidity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Humidity');
   if (humidity != null) conditions.humidity = Number(humidity.last_reading_value).toFixedNumber(0);
@@ -563,7 +563,7 @@ function refreshFromDavis_() {
   if (pressure != null) {
     conditions.pressure = {
       "inHg": Number(pressure).toFixedNumber(3),
-      "hPa": Number(pressure).inHgTohPa().toFixedNumber(0)
+      "hPa": Number(pressure).inHgTohPa().toFixedNumber(1)
     };
   }
   
@@ -690,7 +690,7 @@ function refreshFromWeatherflow_() {
   if (weatherflowConditions.obs[0].wind_direction != null) conditions.winddir = weatherflowConditions.obs[0].wind_direction;
   if (weatherflowConditions.obs[0].sea_level_pressure != null) conditions.pressure = {
     "inHg": Number(weatherflowConditions.obs[0].sea_level_pressure).hPaToinHg().toFixedNumber(3),
-    "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure).toFixedNumber(0)
+    "hPa": Number(weatherflowConditions.obs[0].sea_level_pressure).toFixedNumber(1)
   };
   if (weatherflowConditions.obs[0].relative_humidity != null) conditions.humidity = Number(weatherflowConditions.obs[0].relative_humidity).toFixedNumber(0);
   if (weatherflowConditions.obs[0].wind_chill != null) {
@@ -869,7 +869,7 @@ function refreshFromEcowitt_() {
   if (ecowittConditions.data?.last_update?.pressure?.relative) {
     conditions.pressure = {
       "inHg": Number(ecowittConditions.data.last_update.pressure.relative.value).toFixedNumber(3),
-      "hPa": Number(ecowittConditions.data.last_update.pressure.relative.value).inHgTohPa().toFixedNumber(0)
+      "hPa": Number(ecowittConditions.data.last_update.pressure.relative.value).inHgTohPa().toFixedNumber(1)
     };
   }
   if (ecowittConditions.data?.last_update?.solar_and_uvi) {
@@ -959,7 +959,7 @@ function refreshFromAPRSFI_() {
   if (aprsConditions.wind_direction != null) conditions.winddir = aprsConditions.wind_direction;
   if (aprsConditions.pressure != null) conditions.pressure = {
     "inHg": Number(aprsConditions.pressure).hPaToinHg().toFixedNumber(3),
-    "hPa": Number(aprsConditions.pressure).toFixedNumber(0)
+    "hPa": Number(aprsConditions.pressure).toFixedNumber(1)
   };
   if (aprsConditions.humidity != null) conditions.humidity = Number(aprsConditions.humidity).toFixedNumber(0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
@@ -1063,7 +1063,7 @@ function doPost(request) {
   if (receivedJSON.wind_dir_deg != null) conditions.winddir = receivedJSON.wind_dir_deg;
   if (receivedJSON.pressure_hPa != null) conditions.pressure = {
     "inHg": Number(receivedJSON.pressure_hPa).hPaToinHg().toFixedNumber(3),
-    "hPa": Number(receivedJSON.pressure_hPa).toFixedNumber(0)
+    "hPa": Number(receivedJSON.pressure_hPa).toFixedNumber(1)
   };
   if (receivedJSON.pressure_psi != null) conditions.pressure = {
     "inHg": Number(receivedJSON.pressure_psi).hPaToinHg().toFixedNumber(3),
