@@ -789,6 +789,9 @@ function refreshFromAmbientWeather_() {
   };
   if (station.lastData.uv != null) conditions.uv = station.lastData.uv;
   if (station.lastData.solarradiation != null) conditions.solarRadiation = station.lastData.solarradiation;
+  // Note: Ambient Weather documentation states hourlyrainin is "Hourly Rain Rate, in/hr" (a rate),
+  // but the field name suggests it might be accumulated rain. Currently treating as rate per docs.
+  // If precipitation values seem incorrect, this interpretation may need to be revisited.
   if (station.lastData.hourlyrainin != null) conditions.precipRate = {
     "in": Number(station.lastData.hourlyrainin).toFixedNumber(3),
     "mm": Number(station.lastData.hourlyrainin).inTomm().toFixedNumber(2)
@@ -898,6 +901,16 @@ function refreshFromEcowitt_() {
       "mm": Number(ecowittConditions.data.last_update.rainfall.hourly.value).inTomm().toFixedNumber(2)
     };
   }
+  // if Ecowitt doesn't provide hourly accumulation but does provide rate, calculate it
+  if (!conditions.precipLastHour && conditions.precipRate) {
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    if (calculatedHourlyPrecipAccum != null) {
+      conditions.precipLastHour = {
+        "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+        "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
+      };
+    }
+  }
   if (conditions.temp && conditions.windSpeed) {
     conditions.windChill = {
       "f": conditions.temp.f.windChill(conditions.windSpeed.mph, 'F').toFixedNumber(2),
@@ -971,7 +984,8 @@ function refreshFromAPRSFI_() {
     "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
   };
   if (aprsConditions.luminosity != null) conditions.solarRadiation = Number(aprsConditions.luminosity).toFixedNumber(0);
-  if (aprsConditions.rain_1h != null) conditions.precipRate = {
+  // APRS provides rain_1h as accumulated rainfall over the past hour (not a rate)
+  if (aprsConditions.rain_1h != null) conditions.precipLastHour = {
     "in": Number(aprsConditions.rain_1h).mmToIn().toFixedNumber(3),
     "mm": Number(aprsConditions.rain_1h).toFixedNumber(2)
   };
@@ -982,12 +996,6 @@ function refreshFromAPRSFI_() {
   if (aprsConditions.rain_24h != null) conditions.precipLast24Hours = {
     "in": Number(aprsConditions.rain_24h).mmToIn().toFixedNumber(3),
     "mm": Number(aprsConditions.rain_24h).toFixedNumber(2)
-  };
-  
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
-    "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
-    "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
   };
   
   console.log(JSON.stringify(conditions));
@@ -1395,6 +1403,21 @@ function updateCWOP_() {
   
 }
 
+/**
+ * Calculates hourly precipitation accumulation from precipitation rate data
+ * 
+ * IMPORTANT: This function expects precipitation RATE as input (inches per hour),
+ * not accumulated values. It integrates the rate over time to calculate total
+ * accumulation over the past rolling hour.
+ * 
+ * Field definitions:
+ * - precipRate: Instantaneous precipitation rate (inches/hour or mm/hour)
+ * - precipLastHour: Total accumulated precipitation in the last 60 minutes
+ * - precipSinceMidnight: Total accumulated precipitation since midnight local time
+ * 
+ * @param {number} currentPrecipRate - Precipitation rate in inches per hour
+ * @returns {number|null} - Accumulated precipitation in inches over the past hour, or null if insufficient data
+ */
 function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
 
   const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
