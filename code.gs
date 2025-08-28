@@ -354,10 +354,10 @@ function refreshFromAcurite_() {
     "f": conditions.temp.f.heatIndex(conditions.humidity, 'F').toFixedNumber(2),
     "c": conditions.temp.c.heatIndex(conditions.humidity, 'C').toFixedNumber(2)
   };
-  let uv = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'UV'); // TODO: Unable to test, may be wrong sensor code
+  let uv = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'UVIndex');
   if (uv != null) conditions.uv = uv.last_reading_value;
-  let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Light Intensity'); // TODO: Unable to test, may be wrong sensor code
-  if (lightIntensity != null) conditions.solarRadiation = lightIntensity.last_reading_value;
+  let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'LightIntensity');
+  if (lightIntensity != null) conditions.solarRadiation = Number(Number(lightIntensity.last_reading_value).toFixed(1) / 100);
 
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
   if (rain != null) {
