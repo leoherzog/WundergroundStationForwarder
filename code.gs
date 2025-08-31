@@ -357,7 +357,7 @@ function refreshFromAcurite_() {
   let uv = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'UVIndex');
   if (uv != null) conditions.uv = uv.last_reading_value;
   let lightIntensity = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'LightIntensity');
-  if (lightIntensity != null) conditions.solarRadiation = Number(Number(lightIntensity.last_reading_value).toFixed(1) / 100);
+  if (lightIntensity != null) conditions.solarRadiation = Number(lightIntensity.last_reading_value).luxToWm2().toFixedNumber(1);
 
   let rain = acuriteConditions.sensors.find(sensor => sensor.sensor_code === 'Rainfall');
   if (rain != null) {
@@ -1544,6 +1544,8 @@ Number.prototype.inHgTohPa = function() { return this * 33.86389; }
 Number.prototype.hPaToinHg = function() { return this * 0.02953; }
 Number.prototype.inTomm = function() { return this * 25.4; }
 Number.prototype.mmToIn = function() { return this * 0.03937; }
+Number.prototype.wm2ToLux = function() { return this * 126.7; }
+Number.prototype.luxToWm2 = function() { return this / 126.7; }
 // https://www.weather.gov/media/epz/wxcalc/windChill.pdf
 Number.prototype.windChill = function(windSpeed, units='F') {
   let T = units === 'F' ? this : this.cToF();
