@@ -1092,7 +1092,17 @@ function doPost(request) {
     "in": Number(receivedJSON.rain_rate_mm_h).mmToIn().toFixedNumber(3),
     "mm": Number(receivedJSON.rain_rate_mm_h).toFixedNumber(2)
   };
-  
+  // Calculate hourly accumulation from rate if not provided
+  if (!conditions.precipLastHour && conditions.precipRate) {
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    if (calculatedHourlyPrecipAccum != null) {
+      conditions.precipLastHour = {
+        "in": Number(calculatedHourlyPrecipAccum).toFixedNumber(3),
+        "mm": Number(calculatedHourlyPrecipAccum).inTomm().toFixedNumber(2)
+      };
+    }
+  }
+
   console.log(JSON.stringify(conditions));
   
   CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
@@ -1128,7 +1138,7 @@ function updateWunderground_() {
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
   if (conditions.uv != null) request += '&uv=' + conditions.uv;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
-  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw&realtime=1&rtfreq=60';
 
@@ -1186,7 +1196,7 @@ function updatePWSWeather_() {
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
   if (conditions.uv != null) request += '&uv=' + conditions.uv;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
-  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder&action=updateraw';
   
@@ -1346,7 +1356,7 @@ function updateWOW_() {
   if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
   if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
-  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder' + version;
 
@@ -1386,7 +1396,7 @@ function updateCWOP_() {
   if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.hPa;
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
-  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
+  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   if (conditions.precipLast24Hours != null) request += '&last24hrrainin=' + conditions.precipLast24Hours.in;
   request += '&software=appsscriptforwarder' + version;
