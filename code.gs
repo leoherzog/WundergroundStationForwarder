@@ -1393,7 +1393,7 @@ function updateCWOP_() {
   request += '&windspeedmph=' + conditions.windSpeed.mph;
   request += '&windgustmph=' + conditions.windGust.mph;
   request += '&winddir=' + conditions.winddir;
-  if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.hPa;
+  if (conditions.pressure != null) request += '&pressure=' + conditions.pressure.hPa;
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
