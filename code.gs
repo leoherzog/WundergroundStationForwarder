@@ -1270,7 +1270,7 @@ function updateOpenWeatherMap_() {
   let options = {
     "headers": {"Content-Type": "application/json"},
     "contentType": "application/json",
-    "type": "post",
+    "method": "post",
     "payload": JSON.stringify(measurements)
   };
 
