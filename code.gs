@@ -1274,9 +1274,9 @@ function updateOpenWeatherMap_() {
     "payload": JSON.stringify(measurements)
   };
 
-  let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/measurements?APPID=' + openWeatherMapAPIKey, options).getContentText();
+  let response = UrlFetchApp.fetch('http://api.openweathermap.org/data/3.0/measurements?APPID=' + openWeatherMapAPIKey, options);
 
-  console.log(response);
+  console.log(response.getResponseCode());
 
   return response;
 
