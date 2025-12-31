@@ -204,11 +204,13 @@ function refreshFromIBM_() {
     "mm": convert.toFixed(convert.inTomm(ibmConditions.imperial.precipTotal), 2)
   };
 
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
-    "in": convert.toFixed(calculatedHourlyPrecipAccum, 3),
-    "mm": convert.toFixed(convert.inTomm(calculatedHourlyPrecipAccum), 2)
-  };
+  if (conditions.precipRate != null) {
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+      "in": convert.toFixed(calculatedHourlyPrecipAccum, 3),
+      "mm": convert.toFixed(convert.inTomm(calculatedHourlyPrecipAccum), 2)
+    };
+  }
 
   console.log(JSON.stringify(conditions));
 
@@ -805,11 +807,13 @@ function refreshFromAmbientWeather_() {
     "mm": convert.toFixed(convert.inTomm(station.lastData['24hourrainin']), 2)
   };
 
-  let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
-  if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
-    "in": convert.toFixed(calculatedHourlyPrecipAccum, 3),
-    "mm": convert.toFixed(convert.inTomm(calculatedHourlyPrecipAccum), 2)
-  };
+  if (conditions.precipRate != null) {
+    let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
+    if (calculatedHourlyPrecipAccum != null) conditions.precipLastHour = {
+      "in": convert.toFixed(calculatedHourlyPrecipAccum, 3),
+      "mm": convert.toFixed(convert.inTomm(calculatedHourlyPrecipAccum), 2)
+    };
+  }
 
   console.log(JSON.stringify(conditions));
 
@@ -1074,8 +1078,8 @@ function doPost(request) {
     "hPa": convert.toFixed(receivedJSON.pressure_hPa, 1)
   };
   if (receivedJSON.pressure_psi != null) conditions.pressure = {
-    "inHg": convert.toFixed(convert.hPaToinHg(receivedJSON.pressure_psi), 3),
-    "hPa": convert.toFixed(receivedJSON.pressure_psi, 0)
+    "inHg": convert.toFixed(convert.hPaToinHg(convert.psiToHPa(receivedJSON.pressure_psi)), 3),
+    "hPa": convert.toFixed(convert.psiToHPa(receivedJSON.pressure_psi), 1)
   };
   if (receivedJSON.humidity != null) conditions.humidity = convert.toFixed(receivedJSON.humidity, 0);
   if (conditions.temp != null && conditions.windSpeed != null) conditions.windChill = {
@@ -1552,6 +1556,10 @@ const convert = {
   // pressure
   inHgTohPa: (inHg) => inHg * 33.86389,
   hPaToinHg: (hPa) => hPa * 0.02953,
+  psiToHPa: (psi) => psi * 68.9476,
+  hPaToPSI: (hPa) => hPa * 0.0145038,
+  psiToinHg: (psi) => psi * 2.03602,
+  inHgToPSI: (inHg) => inHg * 0.491154,
   // precipitation
   inTomm: (inches) => inches * 25.4,
   mmToIn: (mm) => mm * 0.03937,
@@ -1568,15 +1576,30 @@ const convert = {
     return units === 'F' ? windChillF : convert.fToC(windChillF);
   },
   // https://www.weather.gov/media/epz/wxcalc/heatIndex.pdf
+  // https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
   heatIndex: (temp, humidity, units = 'F') => {
     let T = units === 'F' ? temp : convert.cToF(temp);
-    if (T < 80) return units === 'F' ? T : temp;
-    let H = humidity;
-    let heatIndexF = -42.379 + 2.04901523 * T + 10.14333127 * H - 0.22475541 * T * H
-      - 6.83783e-3 * Math.pow(T, 2) - 5.481717e-2 * Math.pow(H, 2)
-      + 1.22874e-3 * Math.pow(T, 2) * H + 8.5282e-4 * T * Math.pow(H, 2)
-      - 1.99e-6 * Math.pow(T, 2) * Math.pow(H, 2);
-    return units === 'F' ? heatIndexF : convert.fToC(heatIndexF);
+    let RH = humidity;
+    // 1: try simple formula first
+    let simpleHI = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094));
+    // 2: average with temperature; if < 80°F, use simple formula
+    if ((simpleHI + T) / 2 < 80) {
+      return units === 'F' ? simpleHI : convert.fToC(simpleHI);
+    }
+    // 3: use full Rothfusz regression
+    let HI = -42.379 + 2.04901523 * T + 10.14333127 * RH - 0.22475541 * T * RH
+      - 6.83783e-3 * Math.pow(T, 2) - 5.481717e-2 * Math.pow(RH, 2)
+      + 1.22874e-3 * Math.pow(T, 2) * RH + 8.5282e-4 * T * Math.pow(RH, 2)
+      - 1.99e-6 * Math.pow(T, 2) * Math.pow(RH, 2);
+    // 4: low humidity adjustment (RH < 13% and 80 <= T <= 112)
+    if (RH < 13 && T >= 80 && T <= 112) {
+      HI -= ((13 - RH) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
+    }
+    // 5: high humidity adjustment (RH > 85% and 80 <= T <= 87)
+    if (RH > 85 && T >= 80 && T <= 87) {
+      HI += ((RH - 85) / 10) * ((87 - T) / 5);
+    }
+    return units === 'F' ? HI : convert.fToC(HI);
   },
   toFixed: (num, digits) => +Number(num).toFixed(digits)
 };
