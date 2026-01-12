@@ -546,7 +546,7 @@ function refreshFromDavis_() {
     };
   }
 
-  let windgust = findValue('wind_gust_10_min') || findValue('wind_gust') || findValue('wind_speed_hi');
+  let windgust = findValue('wind_speed_hi_last_10_min') || findValue('wind_gust_10_min') || findValue('wind_gust') || findValue('wind_speed_hi');
   if (windgust != null) {
     conditions.windGust = {
       "mph": convert.toFixed(windgust, 2),
