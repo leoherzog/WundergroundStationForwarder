@@ -141,27 +141,27 @@ and periodically sends it on to
   To send to [Wunderground](https://support.weather.com/s/article/PWS-Upload-Protocol):
 
   Your Station ID and Station Keys are on [your Wunderground Stations list](https://www.wunderground.com/member/devices).
-  - Set `updateWunderground` to `true` on Line 42
-  - Set your `wundergroundStationID` on Line 43
-  - Set your `wundergroundStationKey` on line 44
+  - Set `updateWunderground` to `true` on Line 47
+  - Set your `wundergroundStationID` on Line 48
+  - Set your `wundergroundStationKey` on line 49
   </details>
   <details>
     <summary>Windy.com</summary>
 
   To send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy):
 
-  - Set `updateWindy` to `true` on Line 46
-  - Set your `windyAPIKey` on Line 47
-  - Set your `windyStationID` on line 48. It's likely `0`, `1`, `2`, etc.
+  - Set `updateWindy` to `true` on Line 51
+  - Set your `windyAPIKey` on Line 52
+  - Set your `windyStationID` on line 53. It's likely `0`, `1`, `2`, etc.
   </details>
   <details>
     <summary>Aeris PWSWeather</summary>
 
   To send to [PWSWeather](https://dashboard.pwsweather.com/):
 
-  - Set `updatePWSWeather` to `true` on Line 50
-  - Set your `pwsWeatherAPIKey` from your station's profile page on line 51
-  - Set your `pwsWeatherStationID` on Line 52
+  - Set `updatePWSWeather` to `true` on Line 55
+  - Set your `pwsWeatherAPIKey` from your station's profile page on line 56
+  - Set your `pwsWeatherStationID` on Line 57
   </details>
   <details>
     <summary>WeatherCloud</summary>
@@ -170,19 +170,19 @@ and periodically sends it on to
 
   Retrieve your station's ID and API Key by going to [your Devices](https://app.weathercloud.net/devices), then clicking Settings → 🔌 Link on your station.
 
-  - Set `updateWeatherCloud` to `true` on Line 54
-  - Set your `weathercloudAPIKey` on Line 55
-  - Set your `weathercloudID` on Line 56
-  - Set whether or not you have a WeatherCloud Pro or Premium account with `hasWeatherCloudPro` as `true` or `false` on line 57
+  - Set `updateWeatherCloud` to `true` on Line 59
+  - Set your `weathercloudAPIKey` on Line 60
+  - Set your `weathercloudID` on Line 61
+  - Set whether or not you have a WeatherCloud Pro or Premium account with `hasWeatherCloudPro` as `true` or `false` on line 62
   </details>
   <details>
     <summary>OpenWeatherMap</summary>
 
   Creation of a new OpenWeatherMap station must be done by API, not on the OpenWeatherMap website. More information is available in [the OpenWeatherMap Station API documentation](https://openweathermap.org/stations#create_station). The basic concept for what must be done is available in the `createNewOWMStation_()` function. Remove the `_` character from the name of that function to make it selectable from the `▷ Run` button in the toolbar. If you do so, make sure you note your new station's ID and other details in the log (available in the Executions tab in the sidebar after running!), then:
 
-  - Set `updateOpenWeatherMap` to `true` on Line 59
-  - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 60
-  - Set your `openWeatherMapStationId` to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station) on line 61
+  - Set `updateOpenWeatherMap` to `true` on Line 64
+  - Set `openWeatherMapAPIKey` to your [API Key](https://home.openweathermap.org/api_keys) on Line 65
+  - Set your `openWeatherMapStationId` to [your OpenWeatherMap station's `external_id`](https://openweathermap.org/stations#create_station) on line 66
   </details>
   <details>
     <summary>WindGuru</summary>
@@ -191,9 +191,9 @@ and periodically sends it on to
 
   Start by [registering a new "Other / Upload API" station](https://stations.windguru.cz/register.php?id_type=16), then:
 
-  - Set `updateWindGuru` to `true` on Line 63
-  - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 64
-  - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 65
+  - Set `updateWindGuru` to `true` on Line 68
+  - Set `windGuruStationUID` to your chosen [station UID](https://stations.windguru.cz/) on Line 69
+  - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 70
   </details>
   <details>
     <summary>Met (UK) WOW</summary>
@@ -202,18 +202,18 @@ and periodically sends it on to
 
   Start by [registering a new Site](https://wow.metoffice.gov.uk/sites/create). During registration, one of the fields in your Site's options is "Authentication Key". Choose any 6-Digit number. Then:
 
-  - Set `updateWOW` to `true` on Line 67
-  - Set `wowSiteID` to the generated [Site ID](https://wow.metoffice.gov.uk/sites) on Line 68
-  - Set `wowAuthKey` to your chosen [6-Digit Authentication Key](https://wow.metoffice.gov.uk/sites) that you chose when creating or editing the Site on line 69
+  - Set `updateWOW` to `true` on Line 72
+  - Set `wowSiteID` to the generated [Site ID](https://wow.metoffice.gov.uk/sites) on Line 73
+  - Set `wowAuthKey` to your chosen [6-Digit Authentication Key](https://wow.metoffice.gov.uk/sites) that you chose when creating or editing the Site on line 74
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
 
   Send to [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml). Start by [registering for a new station](https://madis.ncep.noaa.gov/madis_cwop.shtml), then when you receive your email:
 
-  - Set `updateCWOP` to `true` on Line 71
-  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 72
-  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 73
+  - Set `updateCWOP` to `true` on Line 76
+  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 77
+  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 78
   </details>
 
 4. Run the "Schedule" function (not the "doPost" function) by selecting "Schedule" in the dropdown and pressing the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.
