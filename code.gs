@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), or 'custom' (custom webhook in rtl_433 format)
+const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), 'ttn' (The Things Network), or 'custom' (custom webhook in rtl_433 format)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationID = 'KXXXXXXXXXX';
@@ -36,6 +36,11 @@ const aprsApiKey = 'xxxxxx.xxxxxxxxxxxxxxxx';
 // or
 const customStationLat = 'xx.xxxxxx';
 const customStationLon = 'xx.xxxxxx';
+// or
+const ttnCluster = 'nam1'; // 'eu1', 'nam1', or 'au1'
+const ttnApplicationID = 'xxxxxx-app';
+const ttnDeviceID = 'eui-xxxxxxxxxxxxxxxx';
+const ttnAPIKey = 'NNSXS.XXXXXXXXXX.XXXXXXXXXXXXXXXX';
 
 // Sending data
 
@@ -117,6 +122,10 @@ function Schedule() {
     case 'aprs':
       refreshFromAPRSFI_();
       ScriptApp.newTrigger('refreshFromAPRSFI_').timeBased().everyMinutes(1).create();
+      break;
+    case 'ttn':
+      refreshFromTTN_();
+      ScriptApp.newTrigger('refreshFromTTN_').timeBased().everyMinutes(1).create();
       break;
     case 'custom':
       console.warn('You have chosen a custom datasource! Please publish this Apps Script project as a web app');
@@ -1000,6 +1009,97 @@ function refreshFromAPRSFI_() {
   if (aprsConditions.rain_24h != null) conditions.precipLast24Hours = {
     "in": convert.toFixed(convert.mmToIn(aprsConditions.rain_24h), 3),
     "mm": convert.toFixed(aprsConditions.rain_24h, 2)
+  };
+
+  console.log(JSON.stringify(conditions));
+
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+
+  return JSON.stringify(conditions);
+
+}
+
+// https://www.thethingsindustries.com/docs/integrations/storage/retrieve/
+function refreshFromTTN_() {
+
+  let url = 'https://' + ttnCluster + '.cloud.thethings.network/api/v3/as/applications/' + ttnApplicationID + '/devices/' + ttnDeviceID + '/packages/storage/uplink_message';
+  url += '?field_mask=up.uplink_message.decoded_payload&last=300s&limit=1&order=-received_at';
+
+  let response;
+  try {
+    response = UrlFetchApp.fetch(url, {
+      "headers": {
+        "Authorization": "Bearer " + ttnAPIKey,
+        "Accept": "text/event-stream"
+      }
+    }).getContentText();
+  }
+  catch(e) {
+    console.error('Problem fetching TTN data: ' + e.message);
+    return false;
+  }
+
+  // TTN returns newline-delimited JSON; parse most recent message
+  let lines = response.trim().split('\n').filter(line => line.length > 0);
+  if (!lines.length) {
+    console.error('No data returned from TTN');
+    return false;
+  }
+
+  let ttnData;
+  try {
+    ttnData = JSON.parse(lines[0]);
+  }
+  catch(e) {
+    console.error('Problem parsing TTN response: ' + e.message);
+    return false;
+  }
+
+  let payload = ttnData?.result?.uplink_message?.decoded_payload;
+  if (!payload) {
+    console.error('No decoded_payload in TTN response');
+    return false;
+  }
+
+  console.log(JSON.stringify(payload));
+
+  let receivedAt = ttnData?.result?.received_at;
+
+  let conditions = {};
+  conditions.time = receivedAt ? new Date(receivedAt).getTime() : Date.now();
+  conditions.latitude = customStationLat.toString();
+  conditions.longitude = customStationLon.toString();
+
+  // Dragino LHT65 fields: TempC_SHT, Hum_SHT, TempC_DS, BatV
+  // Also support generic field names from other TTN weather sensors
+  let tempC = payload.TempC_SHT ?? payload.TempC_DS ?? payload.temperature ?? payload.temp;
+  if (tempC != null) conditions.temp = {
+    "f": convert.toFixed(convert.cToF(tempC), 2),
+    "c": convert.toFixed(tempC, 2)
+  };
+
+  let humidity = payload.Hum_SHT ?? payload.humidity;
+  if (humidity != null) conditions.humidity = convert.toFixed(humidity, 0);
+
+  // barometric pressure (hPa/mbar is common for TTN sensors)
+  let pressureHPa = payload.pressure ?? payload.barometer ?? payload.baro;
+  if (pressureHPa != null) conditions.pressure = {
+    "inHg": convert.toFixed(convert.hPaToinHg(pressureHPa), 3),
+    "hPa": convert.toFixed(pressureHPa, 1)
+  };
+
+  // light/illuminance (lux) - convert to solar radiation (W/m²)
+  let lux = payload.ILL_lx ?? payload.illuminance ?? payload.lux ?? payload.light;
+  if (lux != null) conditions.solarRadiation = convert.toFixed(convert.luxToWm2(lux), 0);
+
+  // battery voltage (useful for monitoring sensor health)
+  let battery = payload.BatV ?? payload.battery ?? payload.vbat;
+  if (battery != null) conditions.battery = convert.toFixed(battery, 2);
+
+  // derived value (heat index)
+  if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
+    "f": convert.toFixed(convert.heatIndex(conditions.temp.f, conditions.humidity, 'F'), 2),
+    "c": convert.toFixed(convert.heatIndex(conditions.temp.c, conditions.humidity, 'C'), 2)
   };
 
   console.log(JSON.stringify(conditions));

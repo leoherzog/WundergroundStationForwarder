@@ -8,7 +8,8 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 - [WeatherFlow Tempest](https://tempestwx.com/),
 - [Ambient Weather](https://ambientweather.net/),
 - [Ecowitt](https://ecowitt.net/),
-- [aprs.fi (CWOP)](https://aprs.fi/), or
+- [aprs.fi (CWOP)](https://aprs.fi/),
+- [The Things Network](https://www.thethingsnetwork.org/) (LoRaWAN sensors like Dragino LHT65), or
 - a custom data source in [RTL_433 JSON format](https://www.triq.org/rtl_433/DATA_FORMAT.html),
 
 and periodically sends it on to
@@ -98,6 +99,28 @@ and periodically sends it on to
   - Set the `datasource` to `aprs` on Line 10
   - Set your `aprsStationID` on line 34
   - Set your `aprsApiKey` on Line 35 from [your aprs.fi account](https://aprs.fi/account/)
+  </details>
+  <details>
+    <summary>The Things Network (TTN)</summary>
+
+  Uses the [TTN Storage Integration API](https://www.thethingsindustries.com/docs/integrations/storage/retrieve/) to fetch data from LoRaWAN sensors like [Dragino LHT65](https://www.dragino.com/products/temperature-humidity-sensor/item/151-lht65.html).
+
+  Prerequisites:
+  - Your TTN application must have the [Storage Integration](https://www.thethingsindustries.com/docs/integrations/storage/) enabled
+  - Create an API key with `Read application traffic` rights in your [TTN Console](https://console.cloud.thethings.network/)
+
+  Configuration:
+  - Set the `datasource` to `ttn` on Line 10
+  - Set your `ttnCluster` to your regional cluster (`eu1`, `nam1`, or `au1`) on line 40
+  - Set your `ttnApplicationID` on line 41
+  - Set your `ttnDeviceID` on line 42
+  - Set your `ttnAPIKey` on line 43
+  - Set your station's latitude and longitude on lines 37 and 38 in decimal degrees
+
+  Supported sensor fields:
+  - Dragino LHT65: `TempC_SHT`, `Hum_SHT`, `TempC_DS`, `BatV`
+  - Dragino LHT65N-E5: `ILL_lx` (illuminance)
+  - Generic: `temperature`, `humidity`, `pressure`, `illuminance`, `battery`
   </details>
   <details>
     <summary>Custom Data Source</summary>
