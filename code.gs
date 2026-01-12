@@ -88,7 +88,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.10.3';
+let version = 'v2.11.0';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
