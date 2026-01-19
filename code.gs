@@ -50,7 +50,7 @@ const wundergroundStationKey = 'xxxxxxxx';
 ///
 const updateWindy = false;
 const windyStationPassword = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-const windyStationID = '0';
+const windyStationID = 'xxxxxxxx';
 ///
 const updatePWSWeather = false;
 const pwsWeatherAPIKey = 'XXXXXXXXXXX';

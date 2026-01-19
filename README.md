@@ -150,11 +150,11 @@ and periodically sends it on to
 
   To send to [Windy.com](https://stations.windy.com/api-reference):
 
-  Your Station Password is found on your station's detail page in [My Stations](https://stations.windy.com/stations) (click "show key").
+  The Station ID and Station Password is found on your station's detail page in [My Stations](https://stations.windy.com/stations). This is _different_ than the API keys found at [their API Key management page](https://stations.windy.com/keys).
 
   - Set `updateWindy` to `true` on Line 51
   - Set your `windyStationPassword` on Line 52
-  - Set your `windyStationID` on line 53. It's likely `0`, `1`, `2`, etc.
+  - Set your `windyStationID` on line 53.
   </details>
   <details>
     <summary>Aeris PWSWeather</summary>
