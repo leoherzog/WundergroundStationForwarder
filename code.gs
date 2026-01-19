@@ -49,7 +49,7 @@ const wundergroundStationID = 'KXXXXXXXXXX';
 const wundergroundStationKey = 'xxxxxxxx';
 ///
 const updateWindy = false;
-const windyAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const windyStationPassword = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const windyStationID = '0';
 ///
 const updatePWSWeather = false;
@@ -1254,13 +1254,15 @@ function updateWunderground_() {
 
 }
 
-// https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy
+// https://stations.windy.com/api-reference
 function updateWindy_() {
 
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
 
-  let request = 'https://stations.windy.com/pws/update/' + windyAPIKey;
-  request += '?stationId=' + windyStationID;
+  let request = 'https://stations.windy.com/api/v2/observation/update';
+  request += '?PASSWORD=' + windyStationPassword;
+  request += '&stationId=' + windyStationID;
+  request += '&softwaretype=appsscriptforwarder' + version;
   request += '&time=' + new Date(conditions.time).toISOString();
   if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
   if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;

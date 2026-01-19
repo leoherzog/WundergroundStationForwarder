@@ -148,10 +148,12 @@ and periodically sends it on to
   <details>
     <summary>Windy.com</summary>
 
-  To send to [Windy.com](https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy):
+  To send to [Windy.com](https://stations.windy.com/api-reference):
+
+  Your Station Password is found on your station's detail page in [My Stations](https://stations.windy.com/stations) (click "show key").
 
   - Set `updateWindy` to `true` on Line 51
-  - Set your `windyAPIKey` on Line 52
+  - Set your `windyStationPassword` on Line 52
   - Set your `windyStationID` on line 53. It's likely `0`, `1`, `2`, etc.
   </details>
   <details>
