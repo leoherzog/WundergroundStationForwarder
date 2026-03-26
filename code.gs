@@ -69,9 +69,9 @@ const updateWindGuru = false;
 const windGuruStationUID = 'xxxxxxxxxx';
 const windGuruStationPassword = 'xxxxxxxxxxxxxxxx';
 ///
-const updateWOW = false;
-const wowSiteID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
-const wowAuthKey = 'xxxxxx';
+const updateWOWBE = false;
+const wowBESiteID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+const wowBEAuthKey = 'xxxxxx';
 ///
 const updateCWOP = false;
 const cwopStationIDOrHamCallsign = 'CW0001';
@@ -139,7 +139,7 @@ function Schedule() {
   if (updateWeatherCloud) ScriptApp.newTrigger('updateWeatherCloud_').timeBased().everyMinutes(hasWeatherCloudPro ? 1 : 10).create();
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
   if (updateWindGuru) ScriptApp.newTrigger('updateWindGuru_').timeBased().everyMinutes(1).create();
-  if (updateWOW) ScriptApp.newTrigger('updateWOW_').timeBased().everyMinutes(5).create();
+  if (updateWOWBE) ScriptApp.newTrigger('updateWOWBE_').timeBased().everyMinutes(5).create();
   if (updateCWOP) ScriptApp.newTrigger('updateCWOP_').timeBased().everyMinutes(5).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
@@ -1446,14 +1446,14 @@ function updateWindGuru_() {
 
 }
 
-// https://wow.metoffice.gov.uk/support/dataformats#automatic
-function updateWOW_() {
+// https://wow.meteo.be/en/connect-your-station/diy-with-the-wow-be-api/
+function updateWOWBE_() {
 
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
 
-  let request = 'http://wow.metoffice.gov.uk/automaticreading?';
-  request += 'siteid=' + wowSiteID;
-  request += '&siteAuthenticationKey=' + wowAuthKey;
+  let request = 'http://wow.meteo.be/api/v2/send?';
+  request += 'siteid=' + wowBESiteID;
+  request += '&siteAuthenticationKey=' + wowBEAuthKey;
   request += '&dateutc=' + encodeURIComponent(Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyy-MM-dd HH:mm:ss'));
   if (conditions.temp != null) request += '&tempf=' + conditions.temp.f;
   if (conditions.dewpoint != null) request += '&dewptf=' + conditions.dewpoint.f;
@@ -1462,7 +1462,8 @@ function updateWOW_() {
   if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
   if (conditions.pressure != null) request += '&baromin=' + conditions.pressure.inHg;
   if (conditions.humidity != null) request += '&humidity=' + conditions.humidity;
-  if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
+  if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
+  if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder' + version;
 

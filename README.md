@@ -20,7 +20,7 @@ and periodically sends it on to
 - [WeatherCloud](https://weathercloud.com/),
 - [OpenWeatherMap](https://openweathermap.org/stations),
 - [WindGuru](https://www.windguru.cz/map/station/),
-- [MET (UK) WOW](https://wow.metoffice.gov.uk/) and/or
+- [WOW-BE Reboot (RMI)](https://wow.meteo.be/) and/or
 - [NOAA CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
@@ -198,15 +198,17 @@ and periodically sends it on to
   - Set your `windGuruStationPassword` to your chosen [station API password](https://stations.windguru.cz/) (note, not your _account's_ password) on line 70
   </details>
   <details>
-    <summary>Met (UK) WOW</summary>
+    <summary>WOW-BE Reboot (RMI Belgium)</summary>
 
-  Send to [The Met Office's Weather Observations Website](https://wow.metoffice.gov.uk/):
+  Send to [WOW-BE Reboot](https://wow.meteo.be/), the successor to MET UK WOW operated by the Royal Meteorological Institute of Belgium:
 
-  Start by [registering a new Site](https://wow.metoffice.gov.uk/sites/create). During registration, one of the fields in your Site's options is "Authentication Key". Choose any 6-Digit number. Then:
+  Start by [registering a new station](https://wow.meteo.be/). During registration, one of the fields in your Site's options is "Authentication Key" (PIN). Choose any 6-Digit number. Then:
 
-  - Set `updateWOW` to `true` on Line 72
-  - Set `wowSiteID` to the generated [Site ID](https://wow.metoffice.gov.uk/sites) on Line 73
-  - Set `wowAuthKey` to your chosen [6-Digit Authentication Key](https://wow.metoffice.gov.uk/sites) that you chose when creating or editing the Site on line 74
+  - Set `updateWOWBE` to `true` on Line 72
+  - Set `wowBESiteID` to the generated Site ID on Line 73
+  - Set `wowBEAuthKey` to your chosen 6-Digit Authentication Key (PIN) on Line 74
+
+  Note: WOW-BE Reboot replaces MET UK WOW, which is retiring in 2026. If you previously used MET UK WOW, you will need to re-register your station on WOW-BE as existing station IDs are not transferable.
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
