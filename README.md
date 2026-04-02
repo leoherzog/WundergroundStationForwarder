@@ -20,7 +20,8 @@ and periodically sends it on to
 - [WeatherCloud](https://weathercloud.com/),
 - [OpenWeatherMap](https://openweathermap.org/stations),
 - [WindGuru](https://www.windguru.cz/map/station/),
-- [WOW-BE Reboot (RMI)](https://wow.meteo.be/) and/or
+- [WOW-BE Reboot (RMI)](https://wow.meteo.be/),
+- [Temperatur.nu](https://www.temperatur.nu/) and/or
 - [NOAA CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
@@ -209,6 +210,16 @@ and periodically sends it on to
   - Set `wowBEAuthKey` to your chosen 6-Digit Authentication Key (PIN) on Line 74
 
   Note: WOW-BE Reboot replaces MET UK WOW, which is retiring in 2026. If you previously used MET UK WOW, you will need to re-register your station on WOW-BE as existing station IDs are not transferable.
+  </details>
+  <details>
+    <summary>Temperatur.nu</summary>
+
+  Send to [Temperatur.nu](https://www.temperatur.nu/):
+
+  Start by [registering a new "Reporting URL/Hashcode" station](https://www.temperatur.nu/nystation/). Then:
+
+  - Set `updateTemperaturNu` to `true` on Line 76
+  - Set `temperaturNuHash` to your API Key on Line 77
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
