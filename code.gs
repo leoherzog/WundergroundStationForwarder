@@ -1486,7 +1486,7 @@ function updateTemperaturNu_() {
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
 
   if (conditions.temp == null) {
-    throw 'Temperatur.nu requires temp. Please ensure your station has those sensors. For more information, visit: https://www.temperatur.nu/info/rapportera-till-temperatur-nu/';
+    throw 'Temperatur.nu requires temp. Please ensure your station has that sensor. For more information, visit: https://www.temperatur.nu/info/rapportera-till-temperatur-nu/';
   };
 
   let request = 'https://www.temperatur.nu/rapportera.php';

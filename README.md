@@ -219,16 +219,16 @@ and periodically sends it on to
   Start by [registering a new "Reporting URL/Hashcode" station](https://www.temperatur.nu/nystation/). Then:
 
   - Set `updateTemperaturNu` to `true` on Line 76
-  - Set `temperaturNuHash` to your API Key on Line 77
+  - Set `temperaturNuHash` to your Hash Code on Line 77
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
 
   Send to [CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml). Start by [registering for a new station](https://madis.ncep.noaa.gov/madis_cwop.shtml), then when you receive your email:
 
-  - Set `updateCWOP` to `true` on Line 76
-  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 77
-  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 78
+  - Set `updateCWOP` to `true` on Line 79
+  - Set `cwopStationIDOrHamCallsign` to your assigned CWOP station ID that you received via email on Line 80
+  - If you are using your ham radio callsign as your station ID and you have received a validation code from NOAA CWOP support, set `cwopValidationCode` to your validation code on Line 81
   </details>
 
 4. Run the "Schedule" function (not the "doPost" function) by selecting "Schedule" in the dropdown and pressing the `▷ Run` button in the toolbar. You're done! You can see it periodically running in the `☰▶` Executions tab on the left sidebar. This code is executed on Google's servers and does not require a computer to remain on.
