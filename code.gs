@@ -73,6 +73,9 @@ const updateWOWBE = false;
 const wowBESiteID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
 const wowBEAuthKey = 'xxxxxx';
 ///
+const updateTemperaturNu = false;
+const temperaturNuHash = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+///
 const updateCWOP = false;
 const cwopStationIDOrHamCallsign = 'CW0001';
 const cwopValidationCode = null;
@@ -140,6 +143,7 @@ function Schedule() {
   if (updateOpenWeatherMap) ScriptApp.newTrigger('updateOpenWeatherMap_').timeBased().everyMinutes(1).create();
   if (updateWindGuru) ScriptApp.newTrigger('updateWindGuru_').timeBased().everyMinutes(1).create();
   if (updateWOWBE) ScriptApp.newTrigger('updateWOWBE_').timeBased().everyMinutes(5).create();
+  if (updateTemperaturNu) ScriptApp.newTrigger('updateTemperaturNu_').timeBased().everyMinutes(1).create();
   if (updateCWOP) ScriptApp.newTrigger('updateCWOP_').timeBased().everyMinutes(5).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
@@ -1466,6 +1470,28 @@ function updateWOWBE_() {
   if (conditions.precipRate != null) request += '&rainin=' + conditions.precipRate.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
   request += '&softwaretype=appsscriptforwarder' + version;
+
+  let response = UrlFetchApp.fetch(request).getContentText();
+
+  console.log(response);
+
+  return response;
+
+}
+
+// Temperatur.nu only requires temperature in Celsius
+// https://www.temperatur.nu/info/rapportera-till-temperatur-nu/
+function updateTemperaturNu_() {
+
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+
+  if (conditions.temp == null) {
+    throw 'Temperatur.nu requires temp. Please ensure your station has that sensor. For more information, visit: https://www.temperatur.nu/info/rapportera-till-temperatur-nu/';
+  };
+
+  let request = 'https://www.temperatur.nu/rapportera.php';
+  request += '?hash=' + temperaturNuHash;
+  request += '&t=' + conditions.temp.c;
 
   let response = UrlFetchApp.fetch(request).getContentText();
 
