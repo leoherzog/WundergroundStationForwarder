@@ -91,7 +91,7 @@ const cwopValidationCode = null;
 
 */
 
-let version = 'v2.12.0';
+const version = 'v2.13.0';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
@@ -1606,9 +1606,9 @@ function checkGithubReleaseVersion_() {
     console.warn('Problem attempting to check for newer Github version');
     return;
   }
-  if (version.charAt(0) === 'v') version = version.substring(1);
+  const currentVersion = version.charAt(0) === 'v' ? version.substring(1) : version;
   latestRelease.tag_name.trim().charAt(0).toLowerCase() === 'v' ? latestRelease = latestRelease.tag_name.substring(1) : latestRelease = latestRelease.tag_name;
-  switch (compareSemver_(version, latestRelease)) {
+  switch (compareSemver_(currentVersion, latestRelease)) {
     case 0:
       // console.info('Script is up-to-date');
       break;
@@ -1616,7 +1616,7 @@ function checkGithubReleaseVersion_() {
       console.warn('New version of this script is available! Download at https://github.com/leoherzog/WundergroundStationForwarder/releases');
       break;
     case 1:
-      console.error('Local script version (' + version + ') is newer than current release on Github?');
+      console.error('Local script version (' + currentVersion + ') is newer than current release on Github?');
       break;
   };
 }
