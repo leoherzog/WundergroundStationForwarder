@@ -76,6 +76,10 @@ const wowBEAuthKey = 'xxxxxx';
 const updateTemperaturNu = false;
 const temperaturNuHash = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 ///
+const updateNuvoler = false;
+const nuvolerStationID = 'xxxxxxxx';
+const nuvolerStationPassword = 'xxxxxxxxxxxxxxxx';
+///
 const updateCWOP = false;
 const cwopStationIDOrHamCallsign = 'CW0001';
 const cwopValidationCode = null;
@@ -144,6 +148,7 @@ function Schedule() {
   if (updateWindGuru) ScriptApp.newTrigger('updateWindGuru_').timeBased().everyMinutes(1).create();
   if (updateWOWBE) ScriptApp.newTrigger('updateWOWBE_').timeBased().everyMinutes(5).create();
   if (updateTemperaturNu) ScriptApp.newTrigger('updateTemperaturNu_').timeBased().everyMinutes(1).create();
+  if (updateNuvoler) ScriptApp.newTrigger('updateNuvoler_').timeBased().everyMinutes(5).create();
   if (updateCWOP) ScriptApp.newTrigger('updateCWOP_').timeBased().everyMinutes(5).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
@@ -1492,6 +1497,34 @@ function updateTemperaturNu_() {
   let request = 'https://www.temperatur.nu/rapportera.php';
   request += '?hash=' + temperaturNuHash;
   request += '&t=' + conditions.temp.c;
+
+  let response = UrlFetchApp.fetch(request).getContentText();
+
+  console.log(response);
+
+  return response;
+
+}
+
+// Nuvoler (formerly known as Ardubridge) forwarding
+// https://www.nuvoler.com/documentation.php
+function updateNuvoler_() {
+
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+
+  let request = 'https://www.nuvoler.com/data/recibir.php';
+  request += '?station_id=' + nuvolerStationID;
+  request += '&station_pass=' + nuvolerStationPassword;
+  if (conditions.temp != null) request += '&temperature=' + conditions.temp.c;
+  if (conditions.humidity != null) request += '&rh=' + conditions.humidity;
+  if (conditions.pressure != null) request += '&mslp=' + conditions.pressure.hPa;
+  if (conditions.winddir != null) request += '&wind_dir=' + conditions.winddir;
+  if (conditions.windSpeed != null) request += '&wind_avg=' + convert.toFixed(conditions.windSpeed.kph, 2);
+  if (conditions.windSpeed != null) request += '&wind_min=' + convert.toFixed(conditions.windSpeed.kph * 0.8, 2);
+  if (conditions.windGust != null) request += '&wind_max=' + convert.toFixed(conditions.windGust.kph, 2);
+  if (conditions.precipRate != null) request += '&precip=' + convert.toFixed(conditions.precipRate.mm, 2);
+  if (conditions.uv != null) request += '&uv=' + conditions.uv;
+  if (conditions.dewpoint != null) request += '&dewpoint=' + conditions.dewpoint.c;
 
   let response = UrlFetchApp.fetch(request).getContentText();
 
