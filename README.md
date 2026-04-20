@@ -21,7 +21,8 @@ and periodically sends it on to
 - [OpenWeatherMap](https://openweathermap.org/stations),
 - [WindGuru](https://www.windguru.cz/map/station/),
 - [WOW-BE Reboot (RMI)](https://wow.meteo.be/),
-- [Temperatur.nu](https://www.temperatur.nu/) and/or
+- [Temperatur.nu](https://www.temperatur.nu/),
+- [Nuvoler](https://www.nuvoler.com/) and/or
 - [NOAA CWOP](https://madis.ncep.noaa.gov/madis_cwop.shtml).
 
 ## Setup
@@ -220,6 +221,17 @@ and periodically sends it on to
 
   - Set `updateTemperaturNu` to `true` on Line 76
   - Set `temperaturNuHash` to your Hash Code on Line 77
+  </details>
+  <details>
+    <summary>Nuvoler</summary>
+
+  Send to [Nuvoler](https://www.nuvoler.com/):
+
+  Start by [registering a new station](https://www.nuvoler.com/signup.php). Then:
+
+  - Set `updateNuvoler` to `true` on Line 79
+  - Set `nuvolerStationID` to your Nuvoler Station ID on Line 80
+  - Set `nuvolerStationPassword` to your Nuvoler Station Password on Line 81
   </details>
   <details>
     <summary>NOAA Citizen Weather Observer Program (CWOP)</summary>
