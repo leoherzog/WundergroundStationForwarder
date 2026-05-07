@@ -9,7 +9,8 @@ This code is built to be hosted on the free [Google Apps Script](https://develop
 - [Ambient Weather](https://ambientweather.net/),
 - [Ecowitt](https://ecowitt.net/),
 - [aprs.fi (CWOP)](https://aprs.fi/),
-- [The Things Network](https://www.thethingsnetwork.org/) (LoRaWAN sensors like Dragino LHT65), or
+- [The Things Network](https://www.thethingsnetwork.org/) (LoRaWAN sensors like Dragino LHT65),
+- [Netatmo](https://www.netatmo.com/), or
 - a custom data source in [RTL_433 JSON format](https://www.triq.org/rtl_433/DATA_FORMAT.html),
 
 and periodically sends it on to
@@ -122,6 +123,18 @@ and periodically sends it on to
   - Dragino LHT65: `TempC_SHT`, `Hum_SHT`, `TempC_DS`, `BatV`
   - Dragino LHT65N-E5: `ILL_lx` (illuminance)
   - Generic: `temperature`, `humidity`, `pressure`, `illuminance`, `battery`
+  </details>
+  <details>
+    <summary>Netatmo</summary>
+
+  Uses the [Netatmo Connect](https://dev.netatmo.com/apps/) API.
+
+  - Set the `datasource` to `netatmo` on Line 10
+  - Set your `netatmoClientID` on line 45
+  - Set your `netatmoClientSecret` on line 46
+  - Set your `netatmoAccessToken` on line 47
+  - Set your `netatmoRefreshToken` on line 48
+  - Set your `netatmoMacAddress` on line 49
   </details>
   <details>
     <summary>Custom Data Source</summary>

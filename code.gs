@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), 'ttn' (The Things Network), or 'custom' (custom webhook in rtl_433 format)
+const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), 'ttn' (The Things Network), netatmo, or 'custom' (custom webhook in rtl_433 format)
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationID = 'KXXXXXXXXXX';
@@ -41,6 +41,12 @@ const ttnCluster = 'nam1'; // 'eu1', 'nam1', or 'au1'
 const ttnApplicationID = 'xxxxxx-app';
 const ttnDeviceID = 'eui-xxxxxxxxxxxxxxxx';
 const ttnAPIKey = 'NNSXS.XXXXXXXXXX.XXXXXXXXXXXXXXXX';
+// or
+const netatmoClientID = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoClientSecret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoAccessToken = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoRefreshToken = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const netatmoMacAddress = 'XX:XX:XX:XX:XX:XX';
 
 // Sending data
 
@@ -129,6 +135,10 @@ function Schedule() {
     case 'ttn':
       refreshFromTTN_();
       ScriptApp.newTrigger('refreshFromTTN_').timeBased().everyMinutes(1).create();
+      break;
+    case 'netatmo':
+      refreshFromNetatmo_();
+      ScriptApp.newTrigger('refreshFromNetatmo_').timeBased().everyMinutes(1).create();
       break;
     case 'custom':
       console.warn('You have chosen a custom datasource! Please publish this Apps Script project as a web app');
@@ -1112,6 +1122,164 @@ function refreshFromTTN_() {
 
   return JSON.stringify(conditions);
 
+}
+
+// https://dev.netatmo.com/apidocumentation/oauth
+function refreshNetatmoAccessToken_() {
+  let cached = CacheService.getScriptCache().get('netatmoAccessToken');
+  if (cached) {
+    return cached;
+  }
+
+  let payload = {
+    "grant_type": "refresh_token",
+    "refresh_token": netatmoRefreshToken,
+    "client_id": netatmoClientID,
+    "client_secret": netatmoClientSecret
+  };
+
+  let options = {
+    "method": "post",
+    "payload": JSON.stringify(payload),
+    "headers": {"Content-Type": "application/json"},
+    "muteHttpExceptions": true
+  };
+
+  let response = UrlFetchApp.fetch('https://api.netatmo.com/oauth2/token', options);
+  let result = JSON.parse(response.getContentText());
+
+  if (result.access_token) {
+    CacheService.getScriptCache().put('netatmoAccessToken', result.access_token, 3600); // 1 hour cache
+    return result.access_token;
+  } else {
+    throw 'Failed to refresh Netatmo access token: ' + response.getContentText();
+  }
+}
+
+// https://dev.netatmo.com/apidocumentation/weather
+function refreshFromNetatmo_() {
+  let accessToken = refreshNetatmoAccessToken_();
+
+  let netatmoData = fetchJSON_(
+    'https://api.netatmo.com/api/getstationsdata?device_id=' + netatmoMacAddress,
+    {"Authorization": "Bearer " + accessToken}
+  );
+  
+  if (!netatmoData || !netatmoData.body || !netatmoData.body.devices || !netatmoData.body.devices.length) {
+    return false;
+  }
+
+  let station = netatmoData.body.devices[0];
+  if (!station) return false;
+
+  console.log(JSON.stringify(station));
+
+  let conditions = {};
+  conditions.time = station.last_status_store * 1000;
+  conditions.latitude = station.place.location[1].toString();
+  conditions.longitude = station.place.location[0].toString();
+
+  // Process main module (NAMain) - Indoor Module
+  let mainModule = station.modules.find(m => m.type === 'NAMain') || station;
+  if (mainModule && mainModule.dashboard_data) {
+    let data = mainModule.dashboard_data;
+    
+    if (data.Temperature != null) conditions.temp = {
+      "c": convert.toFixed(data.Temperature, 2),
+      "f": convert.toFixed(convert.cToF(data.Temperature), 2)
+    };
+    
+    if (data.Humidity != null) conditions.humidity = convert.toFixed(data.Humidity, 0);
+    
+    if (data.Pressure != null) conditions.pressure = {
+      "hPa": convert.toFixed(data.Pressure, 1),
+      "inHg": convert.toFixed(convert.hPaToinHg(data.Pressure), 3)
+    };
+    
+    if (data.CO2 != null) conditions.co2 = data.CO2;
+    if (data.Noise != null) conditions.noise = data.Noise;
+  }
+
+  // Process Outdoor Module (NAModule1)
+  let outdoorModule = station.modules.find(m => m.type === 'NAModule1');
+  if (outdoorModule && outdoorModule.dashboard_data) {
+    let data = outdoorModule.dashboard_data;
+    
+    if (data.Temperature != null) {
+      conditions.outdoorTemp = {
+        "c": convert.toFixed(data.Temperature, 2),
+        "f": convert.toFixed(convert.cToF(data.Temperature), 2)
+      };
+      // Use outdoor temp as primary if available
+      conditions.temp = conditions.outdoorTemp;
+    }
+    
+    if (data.Humidity != null) conditions.outdoorHumidity = convert.toFixed(data.Humidity, 0);
+  }
+
+  // Process Wind Module (NAModule2)
+  let windModule = station.modules.find(m => m.type === 'NAModule2');
+  if (windModule && windModule.dashboard_data) {
+    let data = windModule.dashboard_data;
+    
+    if (data.WindStrength != null) conditions.windSpeed = {
+      "kph": convert.toFixed(data.WindStrength, 2),
+      "mph": convert.toFixed(convert.kphToMPH(data.WindStrength), 2),
+      "mps": convert.toFixed(convert.kphToMPS(data.WindStrength), 2),
+      "knots": convert.toFixed(convert.kphToKnots(data.WindStrength), 2)
+    };
+    
+    if (data.WindGust != null) conditions.windGust = {
+      "kph": convert.toFixed(data.WindGust, 2),
+      "mph": convert.toFixed(convert.kphToMPH(data.WindGust), 2),
+      "mps": convert.toFixed(convert.kphToMPS(data.WindGust), 2),
+      "knots": convert.toFixed(convert.kphToKnots(data.WindGust), 2)
+    };
+    
+    if (data.WindAngle != null) conditions.winddir = Number(data.WindAngle);
+  }
+
+  // Process Rain Module (NAModule3)
+  let rainModule = station.modules.find(m => m.type === 'NAModule3');
+  if (rainModule && rainModule.dashboard_data) {
+    let data = rainModule.dashboard_data;
+    
+    if (data.Rain != null) conditions.precipSinceMidnight = {
+      "mm": convert.toFixed(data.Rain, 2),
+      "in": convert.toFixed(convert.mmToIn(data.Rain), 3)
+    };
+    
+    if (data.sum_rain_1 != null) conditions.precipLastHour = {
+      "mm": convert.toFixed(data.sum_rain_1, 2),
+      "in": convert.toFixed(convert.mmToIn(data.sum_rain_1), 3)
+    };
+    
+    // Calculate rain rate (mm/hour)
+    if (data.sum_rain_1 != null) conditions.precipRate = {
+      "mm": convert.toFixed(data.sum_rain_1, 2),
+      "in": convert.toFixed(convert.mmToIn(data.sum_rain_1), 3)
+    };
+  }
+
+  // Calculate derived values if we have the necessary data
+  if (conditions.temp && conditions.windSpeed) {
+    conditions.windChill = {
+      "c": convert.toFixed(convert.windChill(conditions.temp.c, conditions.windSpeed.kph, 'C'), 2),
+      "f": convert.toFixed(convert.windChill(conditions.temp.f, conditions.windSpeed.mph, 'F'), 2)
+    };
+  }
+
+  if (conditions.temp && conditions.humidity) {
+    conditions.heatIndex = {
+      "c": convert.toFixed(convert.heatIndex(conditions.temp.c, conditions.humidity, 'C'), 2),
+      "f": convert.toFixed(convert.heatIndex(conditions.temp.f, conditions.humidity, 'F'), 2)
+    };
+  }
+
+  console.log(JSON.stringify(conditions));
+  CacheService.getScriptCache().put('conditions', JSON.stringify(conditions), 21600);
+
+  return JSON.stringify(conditions);
 }
 
 // https://www.triq.org/rtl_433/DATA_FORMAT.html
