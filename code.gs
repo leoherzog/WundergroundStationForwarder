@@ -7,7 +7,7 @@
 
 // Getting data
 
-const datasource = 'weatherflow'; // 'ibm' (wunderground), 'acurite' (myacurite), 'davis' (weatherlink), 'weatherflow' (tempestwx), 'ambient' (ambient weather), 'ecowitt', 'aprs' (aprs.fi), 'ttn' (The Things Network), or 'custom' (custom webhook in rtl_433 format)
+const datasource = 'weatherflow';
 
 const ibmAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const ibmStationID = 'KXXXXXXXXXX';
@@ -21,8 +21,8 @@ const davisApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const davisApiSecret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const davisStationName = 'xxxxxxxxxxxxxxxx';
 // or
-const weatherflowPUT = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
-const weatherflowStationId = 'xxxxx';
+const weatherflowPUT = '141f7a49-8817-4f41-87de-aa502acf40d0';
+const weatherflowStationId = '31162';
 // or
 const ambientWeatherStationName = 'xxxxxx';
 const ambientWeatherApiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -52,9 +52,9 @@ const updateWindy = false;
 const windyStationPassword = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const windyStationID = 'xxxxxxxx';
 ///
-const updatePWSWeather = false;
-const pwsWeatherAPIKey = 'XXXXXXXXXXX';
-const pwsWeatherStationID = 'XXXXXXXXXXX';
+const updatePWSWeather = true;
+const pwsWeatherAPIKey = 'a96bd8a36f677ef052c858be31c9ac7b';
+const pwsWeatherStationID = 'KFLORANG167';
 ///
 const updateWeatherCloud = false;
 const weathercloudAPIKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
