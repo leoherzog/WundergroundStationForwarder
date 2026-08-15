@@ -90,7 +90,7 @@ and periodically sends it on to
 
   - Set the `datasource` to `ecowitt` on Line 10
   - Set your `ecowittAPIKey` from your [Ecowitt.net Private Center](https://www.ecowitt.net/home/user) on Line 30
-  - Set your `ecowittApplicationKey` from your [Ecowitt.net Private Center](https://www.ecowitt.net/home/user) on Line 32
+  - Set your `ecowittApplicationKey` from your [Ecowitt.net Private Center](https://www.ecowitt.net/home/user) on Line 31
   - Set your `ecowittMacAddress` (find in your [Device List](https://www.ecowitt.net/home/manage)) on Line 32
   </details>
   <details>

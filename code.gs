@@ -97,12 +97,13 @@ const cwopValidationCode = null;
 
 */
 
-const version = 'v2.13.0';
+const version = 'v2.14.0';
 
 function Schedule() {
   if (updateWunderground && datasource === 'ibm' && ibmStationID === wundergroundStationID) throw 'Error: You are currently set to pull data from Wunderground and also send data to Wunderground. Please disable one or the other to avoid duplicate data.';
   if (updateCWOP && datasource === 'aprs' && aprsStationID === cwopStationIDOrHamCallsign) throw 'Error: You are currently set to pull data from APRS.FI (CWOP) and also send data to CWOP. Please disable one or the other to avoid duplicate data.';
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
+  CacheService.getScriptCache().removeAll(['conditions', 'davisSensorCatalog', 'myAcuriteAccountId', 'myAcuriteToken', 'lastAcuriteRainReading', 'lastAcuriteRainTime', 'hourlyPrecipHistory', 'aprsloc', 'lastCwopTime']);
   switch (datasource) {
     case 'ibm':
       refreshFromIBM_();
@@ -451,6 +452,7 @@ function getDavisSensors_(forceRefresh = false) {
   if (!catalog || !catalog.sensor_types) throw new Error('Sensor catalog fetch failed');
 
   const map = {};
+  const airQualitySensorTypes = {"outdoor": [], "indoor": []};
   catalog.sensor_types.forEach(st => {
     const {sensor_type: stNum, category} = st;
 
@@ -462,7 +464,14 @@ function getDavisSensors_(forceRefresh = false) {
       const dsType  = ds?.data_structure_type ?? null;
       const fields  = ds?.data_structure;
 
-      if (!fields) {   // guard against null / undefined
+      // air quality sensors (e.g. AirLink) share one product name; placement only appears in the structure description
+      if (category === 'Air Quality') {
+        const description = (ds?.description ?? '').toLowerCase();
+        if (description.includes('outdoor') && !airQualitySensorTypes.outdoor.includes(stNum)) airQualitySensorTypes.outdoor.push(stNum);
+        if (description.includes('indoor') && !airQualitySensorTypes.indoor.includes(stNum)) airQualitySensorTypes.indoor.push(stNum);
+      }
+
+      if (!fields) {
         console.warn(`sensor_type ${stNum} dsType ${dsType} has no data_structure`);
         return;
       }
@@ -486,13 +495,15 @@ function getDavisSensors_(forceRefresh = false) {
     });
   });
 
-  let blob = Utilities.newBlob(JSON.stringify(map));
+  const sensors = {"fields": map, "airQualitySensorTypes": airQualitySensorTypes};
+
+  let blob = Utilities.newBlob(JSON.stringify(sensors));
   let compressedBlob = Utilities.gzip(blob);
   let compressed = Utilities.base64Encode(compressedBlob.getBytes());
 
   CacheService.getScriptCache().put('davisSensorCatalog', compressed, 21600);
 
-  return map;
+  return sensors;
 
 }
 
@@ -520,7 +531,7 @@ function refreshFromDavis_() {
   const sensorCatalog = getDavisSensors_();
 
   function aliasFor(root) {
-    return Object.keys(sensorCatalog).filter(k => k === root || k.startsWith(root + '_'));
+    return Object.keys(sensorCatalog.fields).filter(k => k === root || k.startsWith(root + '_'));
   }
 
   function findValue(fieldNames) {
@@ -671,6 +682,27 @@ function refreshFromDavis_() {
       "mm": convert.toFixed(convert.inTomm(calculatedHourlyPrecipAccum), 2)
     };
   }
+
+  let indoorTemp = findValue('temp_in');
+  if (indoorTemp != null) {
+    conditions.indoorTemp = {
+      "f": convert.toFixed(indoorTemp, 2),
+      "c": convert.toFixed(convert.fToC(indoorTemp), 2)
+    };
+  }
+
+  let indoorHumidity = findValue('hum_in');
+  if (indoorHumidity != null) {
+    conditions.indoorHumidity = convert.toFixed(indoorHumidity, 0);
+  }
+
+  let outdoorAirLink = davisConditions.sensors?.find(sensor => sensorCatalog.airQualitySensorTypes.outdoor.includes(sensor.sensor_type) && sensor.data?.length);
+  let indoorAirLink = davisConditions.sensors?.find(sensor => sensorCatalog.airQualitySensorTypes.indoor.includes(sensor.sensor_type) && sensor.data?.length);
+  let airQuality = (outdoorAirLink ?? indoorAirLink)?.data[0];
+  if (airQuality?.pm_2p5 != null) conditions.pm25 = convert.toFixed(airQuality.pm_2p5, 1);
+  if (airQuality?.pm_10 != null) conditions.pm10 = convert.toFixed(airQuality.pm_10, 1);
+  // aqi_val's scale follows the account's chosen AQI standard (aqi_type), and destinations expect US EPA AQI
+  if (airQuality?.aqi_val != null && typeof airQuality.aqi_type === 'string' && airQuality.aqi_type.includes('United States')) conditions.aqi = convert.toFixed(airQuality.aqi_val, 0);
 
   console.log(JSON.stringify(conditions));
 
@@ -829,6 +861,17 @@ function refreshFromAmbientWeather_() {
     "in": convert.toFixed(station.lastData['24hourrainin'], 3),
     "mm": convert.toFixed(convert.inTomm(station.lastData['24hourrainin']), 2)
   };
+  if (station.lastData.tempinf != null) conditions.indoorTemp = {
+    "f": convert.toFixed(station.lastData.tempinf, 2),
+    "c": convert.toFixed(convert.fToC(station.lastData.tempinf), 2)
+  };
+  if (station.lastData.humidityin != null) conditions.indoorHumidity = convert.toFixed(station.lastData.humidityin, 0);
+  let pm25 = station.lastData.pm25 ?? station.lastData.pm25_in_aqin ?? station.lastData.pm25_in;
+  if (pm25 != null) conditions.pm25 = convert.toFixed(pm25, 1);
+  let pm10 = station.lastData.pm10_in_aqin;
+  if (pm10 != null) conditions.pm10 = convert.toFixed(pm10, 1);
+  let aqi = station.lastData.aqi_pm25 ?? station.lastData.aqi_pm25_aqin ?? station.lastData.aqi_pm25_in;
+  if (aqi != null) conditions.aqi = convert.toFixed(aqi, 0);
 
   if (conditions.precipRate != null) {
     let calculatedHourlyPrecipAccum = getCalculatedHourlyPrecipAccum_(conditions.precipRate.in);
@@ -910,22 +953,81 @@ function refreshFromEcowitt_() {
       conditions.uv = Number(ecowittConditions.data.last_update.solar_and_uvi.uvi.value);
     }
   }
-  if (ecowittConditions.data?.last_update?.rainfall?.rain_rate?.value) {
+  // values are strings and can be placeholders like "--" for uninitialized sensors, so parse defensively
+  let sensorNumber = leaf => {
+    let value = Number.parseFloat(leaf?.value);
+    return Number.isFinite(value) ? value : null;
+  };
+  if (ecowittConditions.data?.last_update?.indoor) {
+    let indoorTemp = sensorNumber(ecowittConditions.data.last_update.indoor.temperature);
+    if (indoorTemp != null) {
+      conditions.indoorTemp = {
+        "f": convert.toFixed(indoorTemp, 2),
+        "c": convert.toFixed(convert.fToC(indoorTemp), 2)
+      };
+    }
+    let indoorHumidity = sensorNumber(ecowittConditions.data.last_update.indoor.humidity);
+    if (indoorHumidity != null) {
+      conditions.indoorHumidity = convert.toFixed(indoorHumidity, 0);
+    }
+  }
+  // prefer a standalone outdoor PM2.5 sensor (WH41/WH43) over the indoor-placement combo unit (WH45/WH46)
+  let airQuality = [
+    ecowittConditions.data?.last_update?.pm25_ch1,
+    ecowittConditions.data?.last_update?.pm25_ch2,
+    ecowittConditions.data?.last_update?.pm25_ch3,
+    ecowittConditions.data?.last_update?.pm25_ch4,
+    ecowittConditions.data?.last_update?.pm25_aqi_combo
+  ].find(group => sensorNumber(group?.pm25) != null);
+  if (airQuality) {
+    conditions.pm25 = sensorNumber(airQuality.pm25);
+    let aqi = sensorNumber(airQuality.real_time_aqi);
+    if (aqi != null) conditions.aqi = convert.toFixed(aqi, 0);
+  }
+  let pm10 = sensorNumber(ecowittConditions.data?.last_update?.pm10_aqi_combo?.pm10);
+  if (pm10 != null) conditions.pm10 = pm10;
+  // haptic rain sensors (WS85, WS90 "Wittboy") report under rainfall_piezo instead of rainfall, with the same child keys.
+  // consoles can report both groups, with the group for the missing sensor zero-filled — sometimes with stale timestamps,
+  // sometimes freshly stamped — so prefer the most recently updated group, breaking ties by which gauge has accumulated any rain.
+  let rainGroupTime = group => Number(group?.rain_rate?.time ?? group?.daily?.time ?? 0);
+  let rainGroupTotal = group => Math.max(...['daily', 'event', 'weekly', 'monthly', 'yearly'].map(key => sensorNumber(group?.[key]) ?? 0));
+  let traditionalRainfall = ecowittConditions.data?.last_update?.rainfall;
+  let piezoRainfall = ecowittConditions.data?.last_update?.rainfall_piezo;
+  let rainfall = traditionalRainfall ?? piezoRainfall;
+  if (traditionalRainfall && piezoRainfall) {
+    if (rainGroupTime(piezoRainfall) > rainGroupTime(traditionalRainfall)) {
+      rainfall = piezoRainfall;
+    } else if (rainGroupTime(piezoRainfall) === rainGroupTime(traditionalRainfall) && rainGroupTotal(traditionalRainfall) === 0 && rainGroupTotal(piezoRainfall) > 0) {
+      rainfall = piezoRainfall;
+    }
+  }
+  let rainRate = sensorNumber(rainfall?.rain_rate);
+  if (rainRate != null) {
     conditions.precipRate = {
-      "in": convert.toFixed(ecowittConditions.data.last_update.rainfall.rain_rate.value, 3),
-      "mm": convert.toFixed(convert.inTomm(ecowittConditions.data.last_update.rainfall.rain_rate.value), 2)
+      "in": convert.toFixed(rainRate, 3),
+      "mm": convert.toFixed(convert.inTomm(rainRate), 2)
     };
   }
-  if (ecowittConditions.data?.last_update?.rainfall?.daily?.value) {
+  let rainDaily = sensorNumber(rainfall?.daily);
+  if (rainDaily != null) {
     conditions.precipSinceMidnight = {
-      "in": convert.toFixed(ecowittConditions.data.last_update.rainfall.daily.value, 3),
-      "mm": convert.toFixed(convert.inTomm(ecowittConditions.data.last_update.rainfall.daily.value), 2)
+      "in": convert.toFixed(rainDaily, 3),
+      "mm": convert.toFixed(convert.inTomm(rainDaily), 2)
     };
   }
-  if (ecowittConditions.data?.last_update?.rainfall?.hourly?.value) {
+  // device/info responses name the hourly accumulation "1_hour"; real_time responses name it "hourly"
+  let rainHourly = sensorNumber(rainfall?.hourly) ?? sensorNumber(rainfall?.['1_hour']);
+  if (rainHourly != null) {
     conditions.precipLastHour = {
-      "in": convert.toFixed(ecowittConditions.data.last_update.rainfall.hourly.value, 3),
-      "mm": convert.toFixed(convert.inTomm(ecowittConditions.data.last_update.rainfall.hourly.value), 2)
+      "in": convert.toFixed(rainHourly, 3),
+      "mm": convert.toFixed(convert.inTomm(rainHourly), 2)
+    };
+  }
+  let rainLast24Hours = sensorNumber(rainfall?.['24_hours']);
+  if (rainLast24Hours != null) {
+    conditions.precipLast24Hours = {
+      "in": convert.toFixed(rainLast24Hours, 3),
+      "mm": convert.toFixed(convert.inTomm(rainLast24Hours), 2)
     };
   }
   // if Ecowitt doesn't provide hourly accumulation but does provide rate, calculate it
@@ -1110,7 +1212,6 @@ function refreshFromTTN_() {
   let battery = payload.BatV ?? payload.battery ?? payload.vbat;
   if (battery != null) conditions.battery = convert.toFixed(battery, 2);
 
-  // derived value (heat index)
   if (conditions.temp != null && conditions.humidity != null) conditions.heatIndex = {
     "f": convert.toFixed(convert.heatIndex(conditions.temp.f, conditions.humidity, 'F'), 2),
     "c": convert.toFixed(convert.heatIndex(conditions.temp.c, conditions.humidity, 'C'), 2)
@@ -1378,6 +1479,9 @@ function doPost(request) {
       };
     }
   }
+  if (receivedJSON.pm2_5_ug_m3 != null) conditions.pm25 = convert.toFixed(receivedJSON.pm2_5_ug_m3, 1);
+  let pm10 = receivedJSON.pm10_ug_m3 ?? receivedJSON.pm10_0_ug_m3 ?? receivedJSON.estimated_pm10_0_ug_m3;
+  if (pm10 != null) conditions.pm10 = convert.toFixed(pm10, 1);
 
   console.log(JSON.stringify(conditions));
 
@@ -1416,6 +1520,10 @@ function updateWunderground_() {
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
+  if (conditions.indoorTemp != null) request += '&indoortempf=' + conditions.indoorTemp.f;
+  if (conditions.indoorHumidity != null) request += '&indoorhumidity=' + conditions.indoorHumidity;
+  if (conditions.pm25 != null) request += '&AqPM2.5=' + conditions.pm25;
+  if (conditions.pm10 != null) request += '&AqPM10=' + conditions.pm10;
   request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw&realtime=1&rtfreq=60';
 
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -1456,7 +1564,7 @@ function updateWindy_() {
 
 // no official api docs 🙄
 // https://gitlab.com/acuparse/acuparse/-/blob/dev/src/fcn/cron/uploaders/pwsweather.php
-// https://github.com/OurColonial/WeatherLink-to-PWSweather
+// https://github.com/OurColonial/WeatherLink-to-PWSweather/blob/master/PWSweather-API_string_2020.txt
 function updatePWSWeather_() {
 
   let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
@@ -1476,7 +1584,7 @@ function updatePWSWeather_() {
   if (conditions.solarRadiation != null) request += '&solarradiation=' + conditions.solarRadiation;
   if (conditions.precipLastHour != null) request += '&rainin=' + conditions.precipLastHour.in;
   if (conditions.precipSinceMidnight != null) request += '&dailyrainin=' + conditions.precipSinceMidnight.in;
-  request += '&softwaretype=appsscriptforwarder&action=updateraw';
+  request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw';
 
   let response = UrlFetchApp.fetch(request).getContentText();
 
@@ -1510,6 +1618,12 @@ function updateWeatherCloud_() {
   if (conditions.solarRadiation != null) request += '&solarrad=' + convert.toFixed(conditions.solarRadiation * 10, 0);
   if (conditions.precipRate != null) request += '&rainrate=' + convert.toFixed(conditions.precipRate.mm * 10, 0);
   if (conditions.precipSinceMidnight != null) request += '&rain=' + convert.toFixed(conditions.precipSinceMidnight.mm * 10, 0);
+  if (conditions.indoorTemp != null) request += '&tempin=' + convert.toFixed(conditions.indoorTemp.c * 10, 0);
+  if (conditions.indoorHumidity != null) request += '&humin=' + conditions.indoorHumidity;
+  if (conditions.indoorTemp != null && conditions.indoorHumidity != null) request += '&dewin=' + convert.toFixed(convert.dewPoint(conditions.indoorTemp.c, conditions.indoorHumidity) * 10, 0);
+  if (conditions.pm25 != null) request += '&pm25=' + convert.toFixed(conditions.pm25, 0);
+  if (conditions.pm10 != null) request += '&pm10=' + convert.toFixed(conditions.pm10, 0);
+  if (conditions.aqi != null) request += '&aqi=' + convert.toFixed(conditions.aqi, 0);
   request += '&software=appsscriptforwarder' + version;
 
   let response = UrlFetchApp.fetch(request).getContentText();
@@ -1731,19 +1845,16 @@ function updateCWOP_() {
  */
 function getCalculatedHourlyPrecipAccum_(currentPrecipRate) {
 
-  const ONE_HOUR_MS = 3600000; // 1 hour in milliseconds
+  const ONE_HOUR_MS = 3600000;
 
   let precipHistory = JSON.parse(CacheService.getScriptCache().get('hourlyPrecipHistory') || '[]');
   const currentTime = new Date().getTime();
 
-  // add the new reading and remove old entries
   precipHistory.push({ "rate": currentPrecipRate, "timestamp": currentTime });
   precipHistory = precipHistory.filter(entry => entry.timestamp >= currentTime - ONE_HOUR_MS);
 
-  // save the updated history back to cache
   CacheService.getScriptCache().put('hourlyPrecipHistory', JSON.stringify(precipHistory), 21600); // 6 hours cache
 
-  // calculate the accumulation if we have sufficient data
   if (precipHistory.length > 1 && currentTime - precipHistory[0].timestamp >= ONE_HOUR_MS * 0.95) { // are there two or more readings spanning almost an hour?
     const totalPrecip = precipHistory.reduce((acc, entry, index, array) => {
       if (index === 0) return acc; // skip the first entry
@@ -1897,6 +2008,11 @@ const convert = {
       HI += ((RH - 85) / 10) * ((87 - T) / 5);
     }
     return units === 'F' ? HI : convert.fToC(HI);
+  },
+  // https://en.wikipedia.org/wiki/Dew_point#Calculating_the_dew_point (Magnus formula)
+  dewPoint: (tempC, humidity) => {
+    let gamma = Math.log(humidity / 100) + (17.62 * tempC) / (243.12 + tempC);
+    return (243.12 * gamma) / (17.62 - gamma);
   },
   toFixed: (num, digits) => +Number(num).toFixed(digits)
 };
