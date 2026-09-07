@@ -79,6 +79,10 @@ const temperaturNuHash = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const updateCWOP = false;
 const cwopStationIDOrHamCallsign = 'CW0001';
 const cwopValidationCode = null;
+///
+const updateSurfr = false;
+const surfrStationID = 'xxxxxxxxxxxxxxxx';
+const surfrStationToken = 'xxxxxxxxxxxxxxxx';
 
 
 
@@ -146,6 +150,7 @@ function Schedule() {
   if (updateWOWBE) ScriptApp.newTrigger('updateWOWBE_').timeBased().everyMinutes(5).create();
   if (updateTemperaturNu) ScriptApp.newTrigger('updateTemperaturNu_').timeBased().everyMinutes(1).create();
   if (updateCWOP) ScriptApp.newTrigger('updateCWOP_').timeBased().everyMinutes(5).create();
+  if (updateSurfr) ScriptApp.newTrigger('updateSurfr_').timeBased().everyMinutes(1).create();
   console.log('Scheduled! Check Executions ☰▶ tab for status.');
   checkGithubReleaseVersion_();
 }
@@ -1655,6 +1660,28 @@ function updateCWOP_() {
   console.log(response);
 
   CacheService.getScriptCache().put('lastCwopTime', conditions.time, 21600); // 6 hours
+
+  return response;
+
+}
+
+// https://thesurfr.app/stations
+function updateSurfr_() {
+
+  let conditions = JSON.parse(CacheService.getScriptCache().get('conditions'));
+
+  let request = 'https://live-wind.thesurfr.app/weatherstation/updateweatherstation.php';
+  request += '?ID=' + surfrStationID;
+  request += '&PASSWORD=' + surfrStationToken;
+  request += '&dateutc=' + encodeURIComponent(Utilities.formatDate(new Date(conditions.time), 'UTC', 'yyyy-MM-dd HH:mm:ss'));
+  if (conditions.windSpeed != null) request += '&windspeedmph=' + conditions.windSpeed.mph;
+  if (conditions.windGust != null) request += '&windgustmph=' + conditions.windGust.mph;
+  if (conditions.winddir != null) request += '&winddir=' + conditions.winddir;
+  request += '&softwaretype=appsscriptforwarder' + version + '&action=updateraw';
+
+  let response = UrlFetchApp.fetch(request).getContentText();
+
+  console.log(response);
 
   return response;
 
